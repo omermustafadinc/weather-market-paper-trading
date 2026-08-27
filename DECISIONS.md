@@ -304,3 +304,108 @@ Erişim yolu netleşince, sırayla:
    eklenirse sonucu güzelleştirme baskısı oluşur. Baştan sabitlenecek.
 
 Her fazdan sonra durup göstereceğim.
+
+---
+
+# EK — Ücretsiz erişim araştırması (2026-08-27, ikinci tur)
+
+Talebin üzerine ücretsiz bir yol aradım. **Buldum, ve çalıştığını kanıtladım.**
+
+## E1. Önce teşhis: engel Kalshi'de mi, bizim ağda mı?
+
+Kalshi'nin API'si veri merkezi IP'lerini engelliyor olabilirdi — o zaman ücretsiz compute
+de işe yaramazdı. Test ettim: sunucu tarafında fetch yapan bir servis üzerinden
+üretim endpoint'ini çağırdım ve **gerçek yanıt geldi**:
+
+```
+GET api.elections.kalshi.com/trade-api/v2/exchange/status
+-> {"exchange_active":true,"exchange_index_statuses":[...]}
+```
+
+**Sonuç: Kalshi'de coğrafi/veri-merkezi engeli YOK. Engel tamamen yerel (TR ISP).**
+Yani Türkiye dışında çalışan herhangi bir ücretsiz compute işi görür.
+
+## E2. Ve asıl merak edilen: üretim likiditesi gerçekten var mı?
+
+Aynı yolla üretim verisini çektim. **KXHIGHNY-26AUG28** (yarının NYC maks. sıcaklığı):
+
+| kova | bid | ask | hacim | OI |
+|---|---|---|---|---|
+| 79° ve altı | 0.12 | 0.14 | 358 | 324 |
+| 80–81° | **0.43** | **0.44** | 2072 | 1839 |
+| 82–83° | 0.31 | 0.33 | 427 | 406 |
+| 84–85° | 0.10 | 0.11 | 124 | 124 |
+| 86–87° | 0.01 | 0.02 | 526 | 526 |
+| 88° ve üstü | 0.00 | 0.01 | 1179 | 1179 |
+
+Mid'lerin toplamı ≈ **1.01** — tutarlı, arbitrajsız bir merdiven. Spread'ler **1–2 sent**.
+
+Orderbook derinliği (`depth=30`), `KXHIGHNY-26AUG28-B80.5`:
+
+```
+yes: 27 seviye, toplam 3.712 kontrat     no: 30 seviye, toplam 5.013 kontrat
+   0.4300 x 52        0.5600 x 16
+   0.4100 x 26        0.5100 x 53
+   0.4000 x 51        0.5000 x 68
+   0.3900 x 26        0.4800 x 34
+   0.3500 x 45        0.4500 x 25
+```
+
+Bu **tam olarak** simülatörün ihtiyaç duyduğu veri. Ve fill gerçekçiliği kaygının ne kadar
+haklı olduğunu da gösteriyor: en iyi seviyede sadece **52 kontrat** var. Mid'den doldurma
+varsayımı burada ciddi şekilde yanıltıcı olurdu — 100 kontrat almak isteyen 0.43'ten değil,
+0.43/0.41/0.40'ı yürüyerek ~0.415 ortalamadan alır. Senin "%10'undan fazlasını alma" kuralı
+da pozisyonları gerçekçi biçimde küçük tutacak (üst seviyede ~5 kontrat).
+
+Dünkü olay (26AUG27) çözülmüş durumda: ≤79° 0.96/0.98, diğerleri ~0. Hacim 32.108.
+Yani bu piyasalar hem likit hem düzgün çözümleniyor.
+
+## E3. Ücretsiz koşum seçenekleri
+
+| | maliyet | kart | cron aralığı | not |
+|---|---|---|---|---|
+| **GitHub Actions (public repo)** | 0 | **gerekmez** | min 5 dk, best-effort | public repo'da dakika limiti YOK |
+| Cloudflare Workers + D1 | 0 | gerekmez | **min 1 dk** | D1 zaten SQLite; ama JS runtime |
+| Oracle Cloud Always Free | 0 | **gerekir** | serbest (cron/systemd) | gerçek VM; TR'den onay bazen sorunlu |
+
+**Önerim: GitHub Actions, public repo.**
+
+Nedenleri:
+- Kredi kartı yok, hesap açma derdi yok, public repo'da **dakika limiti yok**.
+- Tek kod tabanı kalıyor — collector da model de analiz de Python. Cloudflare Workers
+  seçseydik collector'ı JS'e ayırmak gerekirdi.
+- Ham veri commit olarak birikiyor: **append-only ve versiyonlu, tam senin istediğin gibi**.
+  Sen `git pull` ile lokale çekip analizi burada koşuyorsun.
+- "60 gün hareketsizlikte workflow kapanır" kuralı bizi vurmaz; collector zaten her koşuda
+  commit atıyor, bu hareket sayılır.
+
+**Bu yaklaşımın beklenmedik bir yan faydası var — ve gecikme sorununu çözüyor:**
+
+Actions'ın cron'u ±birkaç dakika kayabiliyor. Bu, düzenli aralık varsayan bir tasarımda
+sorun olurdu. Bizde değil: zaten `data_asof`'u gerçekte ne zaman çekildiyse o şekilde
+kaydediyoruz, düzenlilik varsaymıyoruz.
+
+Dahası, senin istediğin "karar ile fill arasına min 30sn gecikme koy ve fiyat değiştiyse
+yeni fiyattan doldur" kuralını **simüle etmek yerine gerçekten yaşayabiliriz**: tek bir
+Actions koşusu içinde → orderbook snapshot al → karar ver → 45 sn bekle → **yeni snapshot
+al** → fill'i yeni kitaba karşı hesapla. Gecikme arası fiyat hareketi uydurma değil,
+gerçek olur. Bu, simülasyonun en zayıf noktasını ortadan kaldırıyor.
+
+## E4. Üretimde KULLANMAYACAĞIM şey
+
+Yukarıdaki teşhisi `r.jina.ai` üzerinden yaptım. **Bunu veri yolu olarak kullanmayacağım:**
+metin çıkarma servisi, ücretsiz katmanı ~20 istek/dk, önbellekleme davranışı belirsiz ve
+araya kattığı gecikme `data_asof` hassasiyetini bozar. Teşhis için doğru araç, üretim için
+yanlış araç. Faz 1'de collector doğrudan Kalshi API'sine konuşacak — sadece Türkiye
+dışından.
+
+Ayrıca denenip elenenler: `api.allorigins.win`, `corsproxy.io` (erişilemedi),
+`api.codetabs.com` (HTTP 522). Hugging Face'te Kalshi veri setleri var
+(`TrevorJS/kalshi-trades` vb.) ama hepsi geçmişe dönük, orderbook içermiyor ve hava
+durumu odaklı değil.
+
+## E5. Güncellenmiş karar
+
+**§8'deki A seçeneği ücretsiz sürümüyle geçerli: collector GitHub Actions'ta (public repo),
+analiz lokalde.** VPS'e para vermeye gerek yok. Senden ihtiyacım olan tek şey bir GitHub
+hesabı ve o repo'yu oluşturma izni.
