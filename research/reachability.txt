@@ -1,0 +1,75 @@
+ERİŞİLEBİLİRLİK TESTİ — ham sonuçlar
+Tarih: 2026-08-27  |  Makine: macOS (darwin 24.5.0), Türkiye / Türk Telekom
+Yöntem: dig (yerel resolver + 1.1.1.1 + 8.8.8.8), curl HTTPS GET, User-Agent set
+
+--- DNS ---
+host                              yerel resolver     cloudflare        google
+api.elections.kalshi.com          195.175.254.2      3.165.206.106     65.9.9.123
+api.kalshi.com                    195.175.254.2      -                 -
+trading-api.kalshi.com            195.175.254.2      -                 -
+kalshi.com                        195.175.254.2      -                 -
+docs.kalshi.com                   195.175.254.2      -                 -
+assets.kalshi.com                 195.175.254.2      -                 -
+gamma-api.polymarket.com          195.175.254.2      104.18.34.205     172.64.153.51
+clob.polymarket.com               195.175.254.2      172.64.153.51     172.64.153.51
+data-api.polymarket.com           195.175.254.2      172.64.153.51     172.64.153.51
+demo-api.kalshi.co                65.9.9.119         13.32.12.59       65.9.9.108
+api.manifold.markets              172.66.165.82      172.66.165.82     104.20.39.159
+
+whois 195.175.254.2:
+  netname: TR-TELEKOM-960902 / org-name: Turk Telekomunikasyon Anonim Sirketi / country: TR
+  -> BTK sinkhole adresi (bahis/kumar erişim engeli)
+
+--- DNS engeli mi, daha derin mi? (curl --resolve ile gerçek IP'ye zorlama) ---
+api.elections.kalshi.com -> 3.165.206.106   : HTTP 000 (bağlantı kurulamadı)
+gamma-api.polymarket.com -> 104.18.34.205   : HTTP 000 (bağlantı kurulamadı)
+  -> Engel yalnız DNS seviyesinde DEĞİL. Doğru SNI ile doğrudan IP'ye bağlanmak da başarısız.
+  -> Ayrıca WebFetch (sunucu tarafı fetch) docs.kalshi.com için "self signed certificate"
+     döndürdü; bu TLS araya girme (MITM blok sayfası) ile tutarlı.
+
+--- HTTPS GET sonuçları ---
+host                                     sonuç
+api.elections.kalshi.com                 ENGELLİ
+gamma-api.polymarket.com                 ENGELLİ
+clob.polymarket.com                      ENGELLİ
+demo-api.kalshi.co                       HTTP 200   (Kalshi DEMO ortamı, auth'suz market data)
+kalshi-public-docs.s3.amazonaws.com      HTTP 200   (S3, geçmiş günlük özet veri)
+api.manifold.markets                     HTTP 200
+polygon-rpc.com                          HTTP 200
+api.weather.gov                          HTTP 200
+api.open-meteo.com                       HTTP 200
+ensemble-api.open-meteo.com              HTTP 200
+historical-forecast-api.open-meteo.com   HTTP 200
+previous-runs-api.open-meteo.com         HTTP 200
+archive-api.open-meteo.com               HTTP 200
+data.ecmwf.int                           HTTP 200
+nomads.ncep.noaa.gov                     HTTP 200  (yavaş, >12s timeout gerekiyor)
+www.ncei.noaa.gov                        HTTP 200
+aviationweather.gov                      HTTP 200
+weather.com/kalshi                       HTTP 200  (Kalshi settlement portalı)
+api.data.adj.news                        NXDOMAIN
+api.predictit.org                        NXDOMAIN
+api.synopticdata.com                     HTTP 401  (API key gerekiyor)
+
+--- Open-Meteo ensemble üye sayıları (canlı doğrulandı, NYC 40.78/-73.97) ---
+gfs025                       31 üye
+gfs05                        31 üye
+ecmwf_ifs025                 51 üye
+icon_seamless                40 üye
+gem_global                   21 üye
+bom_access_global_ensemble   18 üye
+ukmo_global_ensemble_20km    18 üye
+TOPLAM                      ~180 üye (gfs05 hariç)
+
+--- Kalshi S3 reporting/ ---
+Format:  reporting/market_data_YYYY-MM-DD.json
+Kapsam:  2021-06-28 ... 2026-07-29  (2026-07-30 ve sonrası 404 -> ~1 ay yayın gecikmesi)
+Boyut:   26 MB (2025-06) ... 1.8 GB (2026-07-28)
+Şema:    {date, ticker_name, report_ticker, payout_type, open_interest,
+          daily_volume, block_volume, high, low, status}
+          -> SADECE günlük OHLC/hacim. ORDERBOOK YOK.
+
+--- Ortam notu ---
+python3 3.12.7 (python.org kurulumu) sistem CA sertifikalarına sahip değil:
+  ssl.SSLCertVerificationError: unable to get local issuer certificate
+  -> Faz 1'de düzeltilecek (certifi kullan veya "Install Certificates.command" çalıştır)
