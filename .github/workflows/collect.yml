@@ -52,17 +52,28 @@ jobs:
       - name: Topla (karar anı)
         run: python -m wxbot.collect
 
-      # Karar ile fill arasındaki gecikmeyi SİMÜLE etmiyoruz, gerçekten
-      # yaşıyoruz: 45 saniye sonra kitabı yeniden çekiyoruz. Faz 4'te fill
-      # bu ikinci kitaba karşı hesaplanacak, yani aradaki fiyat hareketi
-      # uydurma değil gerçek olacak.
+      - name: Veritabanını kur
+        run: python -m wxbot.ingest --db /tmp/wx.db --rebuild --quiet
+
+      # KARAR ANI. Bundan sonrası artık kararı değiştiremez.
+      - name: Karar ver
+        run: python -m wxbot.agent decide --db /tmp/wx.db
+
+      # Karar ile fill arasındaki gecikme SİMÜLE edilmiyor, gerçekten
+      # yaşanıyor. Ölçtük: piyasaların ~%26'sı bu sürede hareket ediyor.
       - name: 45 sn bekle
         run: sleep 45
 
       - name: Topla (fill anı — yalnızca orderbook)
         run: python -m wxbot.collect --purpose fill --markets-only
 
-      - name: Doğrula (ham veriden SQLite kur + lookahead denetimi)
+      - name: Kararları ve yeni kitabı aktar
+        run: python -m wxbot.ingest --db /tmp/wx.db --quiet
+
+      - name: Fill hesapla (gecikme sonrası kitaba karşı)
+        run: python -m wxbot.agent fill --db /tmp/wx.db
+
+      - name: Doğrula (sıfırdan kur + lookahead denetimi)
         run: |
           python -m wxbot.ingest --db /tmp/verify.db --rebuild --quiet
           echo "ingest ve lookahead denetimi geçti"

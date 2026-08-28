@@ -129,6 +129,78 @@ def ingest_forecast(conn: sqlite3.Connection, rec: dict) -> int:
     return written
 
 
+def ingest_decision(conn: sqlite3.Connection, rec: dict) -> bool:
+    """Karar kaydını aktar. Lookahead kuralları CHECK kısıtı olarak devrede;
+    ihlal eden kayıt buradan geçemez."""
+    from . import config as cfg
+
+    run_id = _ensure_run(conn, rec.get("run_uid", "unknown"), rec["slot_id"],
+                         cfg.MARKET_SLOT_SECONDS, rec["decision_at_us"])
+
+    ticker, slot, purpose = rec["market_snapshot_key"].split("|")
+    snap = conn.execute(
+        "SELECT id FROM market_snapshots WHERE market_ticker=? AND slot_id=? AND purpose=?",
+        (ticker, int(slot), purpose)).fetchone()
+    if snap is None:
+        raise IngestError(
+            f"{rec['market_ticker']} kararı için piyasa snapshot'ı bulunamadı "
+            f"({rec['market_snapshot_key']})")
+
+    try:
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO decisions
+               (run_id, slot_id, venue, market_ticker, event_ticker, target_date,
+                data_asof_us, data_asof_iso, decision_at_us, decision_at_iso,
+                market_snapshot_id, forecast_basis, action, reason, model_prob,
+                market_prob, edge, kelly_fraction, target_contracts, limits_json)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (run_id, rec["slot_id"], rec["venue"], rec["market_ticker"],
+             rec["event_ticker"], rec["target_date"], rec["data_asof_us"],
+             rec["data_asof_iso"], rec["decision_at_us"], rec["decision_at_iso"],
+             int(snap["id"]), db.json_dumps(rec["forecast_basis"]), rec["action"],
+             rec["reason"], rec["model_prob"], rec["market_prob"], rec["edge"],
+             rec["kelly_fraction"], rec["target_contracts"],
+             db.json_dumps(rec["limits"])))
+    except sqlite3.IntegrityError as exc:
+        raise IngestError(
+            f"karar reddedildi ({rec['market_ticker']} @ {rec['decision_at_iso']}): "
+            f"{exc}") from exc
+    return cur.rowcount == 1
+
+
+def ingest_fill(conn: sqlite3.Connection, rec: dict) -> bool:
+    dec = conn.execute(
+        "SELECT id FROM decisions WHERE market_ticker=? AND slot_id=? AND venue=?",
+        (rec["market_ticker"], rec["slot_id"], rec["venue"])).fetchone()
+    if dec is None:
+        raise IngestError(f"{rec['market_ticker']} fill'i için karar bulunamadı")
+
+    snap = conn.execute(
+        "SELECT id FROM market_snapshots WHERE market_ticker=? AND slot_id=? "
+        "AND purpose='fill'", (rec["market_ticker"], rec["slot_id"])).fetchone()
+    if snap is None:
+        raise IngestError(f"{rec['market_ticker']} fill'i için gecikmeli kitap yok")
+
+    try:
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO sim_fills
+               (decision_id, fill_snapshot_id, decision_at_us, book_asof_us,
+                filled_at_us, filled_at_iso, side, requested_contracts,
+                filled_contracts, avg_price_dcents, fee_dcents, levels_consumed,
+                fill_status, notes)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (int(dec["id"]), int(snap["id"]), rec["decision_at_us"],
+             rec["book_asof_us"], rec["filled_at_us"], rec["filled_at_iso"],
+             rec["side"], rec["requested_contracts"], rec["filled_contracts"],
+             rec["avg_price_dcents"], rec["fee_dcents"],
+             db.json_dumps(rec["levels_consumed"]), rec["fill_status"],
+             rec["notes"]))
+    except sqlite3.IntegrityError as exc:
+        raise IngestError(
+            f"fill reddedildi ({rec['market_ticker']}): {exc}") from exc
+    return cur.rowcount == 1
+
+
 def _num(v: object) -> float | None:
     if v is None or v == "":
         return None
@@ -143,7 +215,8 @@ def _num(v: object) -> float | None:
 
 def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
                *, verbose: bool = True) -> dict[str, int]:
-    stats = {"market_new": 0, "market_seen": 0, "forecast_new": 0, "forecast_seen": 0}
+    stats = {"market_new": 0, "market_seen": 0, "forecast_new": 0, "forecast_seen": 0,
+             "decision_new": 0, "decision_seen": 0, "fill_new": 0, "fill_seen": 0}
 
     conn.execute("BEGIN")
     try:
@@ -156,6 +229,13 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
         for rec in rawstore.read_all("forecast", root):
             stats["forecast_seen"] += 1
             stats["forecast_new"] += ingest_forecast(conn, rec)
+        # Sıra önemli: fill kaydı kendi kararına referans veriyor.
+        for rec in rawstore.read_all("decision", root):
+            stats["decision_seen"] += 1
+            stats["decision_new"] += 1 if ingest_decision(conn, rec) else 0
+        for rec in rawstore.read_all("fill", root):
+            stats["fill_seen"] += 1
+            stats["fill_new"] += 1 if ingest_fill(conn, rec) else 0
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -166,6 +246,11 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
               f"{stats['market_new']} yeni satır")
         print(f"tahmin : {stats['forecast_seen']} kayıt okundu, "
               f"{stats['forecast_new']} yeni satır")
+        if stats["decision_seen"] or stats["fill_seen"]:
+            print(f"karar  : {stats['decision_seen']} kayıt okundu, "
+                  f"{stats['decision_new']} yeni satır")
+            print(f"fill   : {stats['fill_seen']} kayıt okundu, "
+                  f"{stats['fill_new']} yeni satır")
     return stats
 
 

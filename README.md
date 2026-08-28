@@ -67,6 +67,11 @@ src/wxbot/
   collect.py   idempotent, devam edebilen snapshot toplayıcı
   ingest.py    JSONL -> SQLite + lookahead doğrulama kapısı
   model.py     ensemble -> dağılım -> kova olasılıkları
+  fills.py     orderbook yürüyerek gerçekçi fill + Kalshi fee modeli
+  strategy.py  edge, eşik, kesirli Kelly, limitler
+  agent.py     karar ver / gecikme sonrası doldur
+  groundtruth.py  NWS CLI + NCEI gözlem
+  bias.py      grid-istasyon bias çalışması
 tests/         kısıtların testi
 data/raw/      ham veri (append-only JSONL, repoya commit'lenir)
 research/      Faz 0 ham erişilebilirlik kanıtları
@@ -79,7 +84,7 @@ DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 - [x] **Faz 1** — iskelet: HTTP guard, şema, lookahead testi
 - [x] **Faz 2** — collector (orderbook + tahmin snapshot'ları)
 - [x] **Faz 3** — model (ensemble → dağılım → kova olasılıkları) — *kalibre edilmedi*
-- [ ] Faz 4 — strategy + simulator (fill gerçekçiliği, fee, Kelly)
+- [x] **Faz 4** — strategy + simulator (fill gerçekçiliği, fee, Kelly)
 - [ ] Faz 5 — ledger + reporter + baseline'lar
 
 ## Veri kaynakları

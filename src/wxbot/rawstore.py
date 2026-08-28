@@ -31,7 +31,7 @@ RAW_ROOT = Path(__file__).resolve().parents[2] / "data" / "raw"
 #: Kayıt biçimi sürümü. Şekil değişirse artar; ingest eski sürümleri de okur.
 RECORD_VERSION = 1
 
-KINDS = ("market", "market_meta", "forecast")
+KINDS = ("market", "market_meta", "forecast", "decision", "fill")
 
 
 def path_for(kind: str, fetched_at_us: int, root: Path | None = None) -> Path:
@@ -223,3 +223,60 @@ def forecast_record(
         "fetched_at_us": fetched_at_us, "fetched_at_iso": fetched_at_iso,
         "source_url": source_url, "member_count": member_count, "payload": payload,
     }
+
+
+# ---------------------------------------------------------------------------
+# Karar ve fill kayıtları
+# ---------------------------------------------------------------------------
+
+
+def decision_record(
+    *, run_uid: str, venue: str, slot_id: int, market_ticker: str, event_ticker: str,
+    target_date: str, data_asof_us: int, data_asof_iso: str, decision_at_us: int,
+    decision_at_iso: str, market_snapshot_key: str, forecast_basis: list,
+    action: str, reason: str, model_prob: float, market_prob: float | None,
+    edge: float | None, kelly_fraction: float | None, target_contracts: float,
+    limits: dict,
+) -> dict[str, Any]:
+    """HER karar loglanır — işlem yapmama kararı da, gerekçesiyle."""
+    return {
+        "v": RECORD_VERSION, "kind": "decision", "run_uid": run_uid, "venue": venue,
+        "slot_id": slot_id, "market_ticker": market_ticker,
+        "event_ticker": event_ticker, "target_date": target_date,
+        "data_asof_us": data_asof_us, "data_asof_iso": data_asof_iso,
+        "decision_at_us": decision_at_us, "decision_at_iso": decision_at_iso,
+        "market_snapshot_key": market_snapshot_key, "forecast_basis": forecast_basis,
+        "action": action, "reason": reason, "model_prob": model_prob,
+        "market_prob": market_prob, "edge": edge, "kelly_fraction": kelly_fraction,
+        "target_contracts": target_contracts, "limits": limits,
+        # rawstore.append gün dosyasını buradan seçiyor
+        "fetched_at_us": decision_at_us,
+    }
+
+
+def fill_record(
+    *, run_uid: str, venue: str, slot_id: int, market_ticker: str,
+    decision_at_us: int, book_asof_us: int, filled_at_us: int, filled_at_iso: str,
+    side: str, requested: float, filled: float, avg_price_dcents: float | None,
+    fee_dcents: float, levels: list, status: str, notes: str,
+) -> dict[str, Any]:
+    return {
+        "v": RECORD_VERSION, "kind": "fill", "run_uid": run_uid, "venue": venue,
+        "slot_id": slot_id, "market_ticker": market_ticker,
+        "decision_at_us": decision_at_us, "book_asof_us": book_asof_us,
+        "filled_at_us": filled_at_us, "filled_at_iso": filled_at_iso,
+        "side": side, "requested_contracts": requested, "filled_contracts": filled,
+        "avg_price_dcents": avg_price_dcents, "fee_dcents": fee_dcents,
+        "levels_consumed": levels, "fill_status": status, "notes": notes,
+        "fetched_at_us": filled_at_us,
+    }
+
+
+def collected_decision_keys(day: str, slot_id: int, root: Path | None = None) -> set[str]:
+    return {r["market_ticker"] for r in read_day("decision", day, root)
+            if r.get("slot_id") == slot_id}
+
+
+def collected_fill_keys(day: str, slot_id: int, root: Path | None = None) -> set[str]:
+    return {r["market_ticker"] for r in read_day("fill", day, root)
+            if r.get("slot_id") == slot_id}
