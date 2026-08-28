@@ -60,10 +60,14 @@ DENIED_PATH_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"/log[io]n(/|$)", re.I),
 )
 
+#: NWS açıklayıcı bir User-Agent ve iletişim bilgisi istiyor. İletişim olarak
+#: kişisel e-posta yerine repo adresini veriyoruz: repo public, e-posta orada
+#: durursa scraper'lara açık olurdu.
+REPO_URL = "https://github.com/omermustafadinc/weather-market-paper-trading"
+
 USER_AGENT = (
     f"weather-paper-trading-research/{__version__} "
-    "(non-commercial research; read-only; paper trading only; "
-    "contact: mustafadinc.02.02@gmail.com)"
+    f"(non-commercial research; read-only; paper trading only; +{REPO_URL})"
 )
 
 #: Host başına istek/saniye tavanı. Yayınlanmış limitlerin belirgin altında

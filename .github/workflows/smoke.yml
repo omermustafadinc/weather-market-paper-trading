@@ -1,0 +1,88 @@
+# Erişilebilirlik ölçümü.
+#
+# Faz 0'da Kalshi'nin veri merkezi IP'lerine yanıt verdiğini kanıtladım, ama
+# Actions runner'ları Azure'da ve Kalshi Azure aralıklarını ayrıca engelliyor
+# olabilir. Tüm depolama katmanını bu varsayımın üstüne kurmadan önce ölçüyorum.
+name: smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reachability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bağımlılıklar
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -e .
+
+      - name: Runner nerede?
+        run: |
+          echo "runner çıkış IP'si:"
+          curl -s --max-time 15 https://api.ipify.org || echo "  alınamadı"
+          echo
+
+      - name: Kalshi ÜRETİM erişilebilir mi?
+        run: |
+          python - <<'PY'
+          from wxbot.http import Fetcher
+          from wxbot.config import KALSHI_PROD
+          from wxbot.kalshi import KalshiClient, parse_orderbook
+          from wxbot.clock import us_to_iso
+
+          with Fetcher() as f:
+              r = f.get(f"{KALSHI_PROD}/exchange/status")
+              print(f"exchange/status -> HTTP {r.status}  {r.text[:120]}")
+
+              k = KalshiClient(f, KALSHI_PROD)
+              evs = k.events("KXHIGHNY")
+              print(f"\nKXHIGHNY olay sayısı: {len(evs)}")
+
+              shown = 0
+              for ev in evs:
+                  for m in ev.get("markets") or []:
+                      if m.get("status") not in ("active", "open"):
+                          continue
+                      book, us, _ = k.orderbook(m["ticker"], 100)
+                      lv = parse_orderbook(book)
+                      yes = [x for x in lv if x.side == "yes"]
+                      no = [x for x in lv if x.side == "no"]
+                      print(f"  {m['ticker']:<28} "
+                            f"yes:{len(yes):>2} seviye/{sum(x.quantity for x in yes):>8.0f} kontrat  "
+                            f"no:{len(no):>2} seviye/{sum(x.quantity for x in no):>8.0f} kontrat")
+                      shown += 1
+                      if shown >= 6:
+                          break
+                  if shown >= 6:
+                      break
+              print(f"\nfetched_at: {us_to_iso(us)}")
+          PY
+
+      - name: Open-Meteo ve NWS
+        run: |
+          python - <<'PY'
+          from wxbot.http import Fetcher
+          from wxbot import config as cfg
+
+          with Fetcher() as f:
+              for m in cfg.ENSEMBLE_MODELS:
+                  r = f.get(cfg.OPEN_METEO_ENSEMBLE, params={
+                      "latitude": 40.7833, "longitude": -73.9667, "models": m.name,
+                      "daily": cfg.DAILY_VARIABLE, "forecast_days": 2,
+                      "temperature_unit": cfg.TEMP_UNIT, "timezone": "America/New_York"})
+                  d = r.json()["daily"]
+                  n = len([k for k in d if k.startswith(cfg.DAILY_VARIABLE)])
+                  flag = "ok" if n >= m.expected_members else f"EKSİK (beklenen {m.expected_members})"
+                  print(f"  {m.name:<28} {n:>3} üye  {flag}")
+
+              r = f.get(f"{cfg.NWS_BASE}/products/types/CLI/locations/NYC")
+              print(f"\nNWS CLI NYC -> HTTP {r.status}, {len(r.json().get('@graph', []))} ürün")
+          PY

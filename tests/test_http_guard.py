@@ -130,7 +130,14 @@ def test_user_agent_aciklayici() -> None:
     ua = wxhttp.USER_AGENT
     assert "research" in ua.lower()
     assert "read-only" in ua.lower()
-    assert "@" in ua, "iletişim bilgisi olmalı"
+    assert "github.com/" in ua, "iletişim bilgisi (repo adresi) olmalı"
+
+
+def test_user_agent_kisisel_eposta_sizdirmaz() -> None:
+    """Repo public; User-Agent her isteğe gidiyor. Kişisel e-posta olmamalı."""
+    assert "@" not in wxhttp.USER_AGENT, (
+        "User-Agent'ta e-posta var — public repoda ve her HTTP isteğinde görünür"
+    )
 
 
 def test_her_izinli_host_icin_rate_limit_tanimli() -> None:
