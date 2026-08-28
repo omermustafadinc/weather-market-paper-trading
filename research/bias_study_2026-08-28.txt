@@ -1,0 +1,59 @@
+GRID-İSTASYON BIAS ÇALIŞMASI
+bias = tahmin - gözlem  (pozitif = model sıcak tahmin ediyor)
+
+=== best_match ===
+  şehir     n   lead1 bias    mae   lead2 bias    mae   lead3 bias    mae
+  NY      117        +2.11   2.88        +3.20   3.87        +3.06   3.99
+  CHI     117        +0.61   2.44        +1.16   2.75        +1.28   3.34
+  MIA     116        -1.73   2.09        +0.08   1.21        +0.15   1.20
+  AUS     117        -1.73   2.41        +1.94   2.94        +1.74   3.08
+  DEN     117        +0.51   1.90        +0.79   2.30        +0.81   2.82
+  LAX     117        -0.96   2.18        +0.99   2.30        +1.16   2.63
+  PHL     117        -1.35   2.14        -1.12   2.86        -1.29   3.01
+
+=== ecmwf_ifs025 ===
+  şehir     n   lead1 bias    mae   lead2 bias    mae   lead3 bias    mae
+  NY      117        +1.39   2.55        +1.17   2.88        +0.87   3.14
+  CHI     117        -0.25   2.44        -0.05   2.68        -0.03   2.77
+  MIA     116        -3.84   3.87        -4.24   4.24        -4.08   4.08
+  AUS     117        -0.79   2.06        -0.64   2.28        -0.34   2.49
+  DEN     117        -0.92   2.16        -1.15   2.72        -1.39   3.24
+  LAX     117        +9.44   9.45        +9.76   9.77        +9.86   9.86
+  PHL     117        -1.91   2.51        -1.95   3.11        -1.87   3.45
+
+=== icon_seamless ===
+  şehir     n   lead1 bias    mae   lead2 bias    mae   lead3 bias    mae
+  NY      117        +0.39   1.82        +0.31   2.17        +0.10   2.48
+  CHI     117        -0.21   1.76        +0.25   2.34        +0.75   2.70
+  MIA     116        -0.93   1.54        -0.63   1.69        -0.69   1.85
+  AUS     117        -0.72   1.82        -0.28   1.88        -0.08   2.21
+  DEN     117        -1.13   2.05        -0.90   2.26        -1.15   2.95
+  LAX     117        +2.40   3.17        +2.68   3.54        +2.94   3.71
+  PHL     117        -1.83   2.23        -1.47   2.22        -1.26   2.66
+
+
+YÖNTEM
+  Tahmin   : Open-Meteo previous-runs-api, temperature_2m_previous_dayN
+             (N gün önce yapılmış tahmin — lead time kontrollü, lookahead'e kapalı)
+  Gözlem   : NCEI GHCN-Daily TMAX, kontratın çözümlendiği istasyonun kendisi
+  Dönem    : ~117 gün (2026-05-01 .. 2026-08-24)
+  Günlük maksimum yerel takvim gününe göre; saatlik kapsama 24/24 doğrulandı.
+
+İSTASYONLAR (iki bağımsız kaynakla doğrulandı: ghcnd-stations.txt + api.weather.gov)
+  NY  KNYC USW00094728  NY CITY CNTRL PARK        40.7789  -73.9692
+  CHI KMDW USW00014819  CHICAGO MIDWAY AP         41.7842  -87.7553
+  MIA KMIA USW00012839  MIAMI INTL AP             25.7881  -80.3169
+  AUS KAUS USW00013904  AUSTIN BERGSTROM INTL AP  30.1831  -97.6800
+  DEN KDEN USW00003017  DENVER INTL AP            39.8467 -104.6561
+  LAX KLAX USW00023174  LOS ANGELES INTL AP       33.9381 -118.3867
+  PHL KPHL USW00013739  PHILA INTL AP             39.8733  -75.2269
+
+  Çapraz kontrol: 2026-08-24'te NWS CLI ile NCEI TMAX beş şehirde birebir aynı
+  (NYC 79, MDW 79, MIA 91, LAX 84, PHL 83).
+
+KISITLAR
+  * previous-runs DETERMİNİSTİK tahmin verir, ensemble ortalaması değil.
+    Konumdan gelen bias bileşeni (grid hücresi vs nokta istasyon) ikisinde ortak;
+    modelden gelen bileşen farklı olabilir.
+  * GFS previous-runs'ta veri döndürmüyor.
+  * NCEI ~4 gün gecikmeli; en yeni günler kapsam dışı.

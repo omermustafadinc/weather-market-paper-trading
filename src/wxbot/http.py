@@ -46,6 +46,7 @@ ALLOWED_HOSTS: frozenset[str] = frozenset(
         "archive-api.open-meteo.com",
         # Ground truth / gözlem
         "api.weather.gov",
+        "www.ncei.noaa.gov",
     }
 )
 
@@ -83,6 +84,7 @@ RATE_LIMITS: Mapping[str, float] = {
     "previous-runs-api.open-meteo.com": 2.0,
     "archive-api.open-meteo.com": 2.0,
     "api.weather.gov": 2.0,
+    "www.ncei.noaa.gov": 1.0,
 }
 _DEFAULT_RATE = 1.0
 

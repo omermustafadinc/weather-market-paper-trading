@@ -23,6 +23,8 @@ KALSHI_DEMO = "https://demo-api.kalshi.co/trade-api/v2"
 
 OPEN_METEO_ENSEMBLE = "https://ensemble-api.open-meteo.com/v1/ensemble"
 NWS_BASE = "https://api.weather.gov"
+NCEI_DATA = "https://www.ncei.noaa.gov/access/services/data/v1"
+OPEN_METEO_PREVIOUS_RUNS = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
 
 def kalshi_base() -> str:
@@ -50,6 +52,7 @@ class City:
     series: str         # Kalshi seri ticker'ı
     cli_code: str       # NWS CLI lokasyon kodu (kontrat kuralından)
     station: str        # NWS istasyon kimliği
+    ghcn: str           # NCEI GHCN-Daily kimliği (geçmiş ground truth)
     lat: float
     lon: float
     tz: str             # yerel gün sınırı için IANA zaman dilimi
@@ -57,19 +60,19 @@ class City:
 
 
 CITIES: tuple[City, ...] = (
-    City("NY",  "KXHIGHNY",   "NYC", "KNYC", 40.7833,  -73.9667, "America/New_York",
+    City("NY",  "KXHIGHNY",   "NYC", "KNYC", "USW00094728", 40.7833,  -73.9667, "America/New_York",
          "New York City, Central Park"),
-    City("CHI", "KXHIGHCHI",  "MDW", "KMDW", 41.7842,  -87.7553, "America/Chicago",
+    City("CHI", "KXHIGHCHI",  "MDW", "KMDW", "USW00014819", 41.7842,  -87.7553, "America/Chicago",
          "Chicago Midway Airport"),
-    City("MIA", "KXHIGHMIA",  "MIA", "KMIA", 25.7906,  -80.3164, "America/New_York",
+    City("MIA", "KXHIGHMIA",  "MIA", "KMIA", "USW00012839", 25.7906,  -80.3164, "America/New_York",
          "Miami International Airport"),
-    City("AUS", "KXHIGHAUS",  "AUS", "KAUS", 30.1830,  -97.6799, "America/Chicago",
+    City("AUS", "KXHIGHAUS",  "AUS", "KAUS", "USW00013904", 30.1830,  -97.6799, "America/Chicago",
          "Austin-Bergstrom International Airport"),
-    City("DEN", "KXHIGHDEN",  "DEN", "KDEN", 39.8466, -104.6562, "America/Denver",
+    City("DEN", "KXHIGHDEN",  "DEN", "KDEN", "USW00003017", 39.8466, -104.6562, "America/Denver",
          "Denver International Airport"),
-    City("LAX", "KXHIGHLAX",  "LAX", "KLAX", 33.9381, -118.3889, "America/Los_Angeles",
+    City("LAX", "KXHIGHLAX",  "LAX", "KLAX", "USW00023174", 33.9381, -118.3889, "America/Los_Angeles",
          "Los Angeles International Airport"),
-    City("PHL", "KXHIGHPHIL", "PHL", "KPHL", 39.8733,  -75.2268, "America/New_York",
+    City("PHL", "KXHIGHPHIL", "PHL", "KPHL", "USW00013739", 39.8733,  -75.2268, "America/New_York",
          "Philadelphia International Airport"),
 )
 

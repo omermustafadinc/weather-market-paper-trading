@@ -409,3 +409,85 @@ durumu odaklı değil.
 **§8'deki A seçeneği ücretsiz sürümüyle geçerli: collector GitHub Actions'ta (public repo),
 analiz lokalde.** VPS'e para vermeye gerek yok. Senden ihtiyacım olan tek şey bir GitHub
 hesabı ve o repo'yu oluşturma izni.
+
+---
+
+# EK 2 — Grid-istasyon bias ölçümü (2026-08-28)
+
+Faz 3'te model piyasadan 15 puan sapmış görünüyordu. Bunun edge mi model hatası
+mı olduğunu ölçtüm. **Model hatası.**
+
+Tam sonuç: [research/bias_study_2026-08-28.txt](research/bias_study_2026-08-28.txt)
+
+## Yöntem — ve neden bu yöntem
+
+Kalibrasyon için geçmiş tahmin lazımdı ama iki tuzak vardı:
+
+1. **Ensemble API'nin `past_days` verisi kullanılamaz.** Saçılım lead time
+   arttıkça DARALIYOR (4 gün önce std=0.67°F, bugün std=2.11°F). Gerçek bir
+   4 günlük tahminde saçılım 2-5°F'dir. Bu veri "o gün yapılmış tahmin" değil,
+   bugünkü koşunun geriye dönük analizi. Kalibrasyonda kullansaydım model
+   olduğundan çok daha iyi görünürdü.
+
+2. **Çözüm: `previous-runs-api`.** `temperature_2m_previous_dayN` değişkeni
+   N gün önce yapılmış tahmini veriyor. Doğrulaması: hata lead time ile
+   BÜYÜYOR — doğru imza. Saatlik kapsama 24/24 kontrol edildi (eksik kapsama
+   günlük maksimumu düşük gösterip bias'ı kirletirdi). 120 gün geriye gidiyor.
+
+Gerçekleşen değer: NCEI GHCN-Daily TMAX, kontratın çözümlendiği istasyonun
+kendisi. İstasyon kimlikleri iki bağımsız kaynakla doğrulandı ve NWS CLI ile
+NCEI beş şehirde birebir aynı değeri verdi.
+
+## Sonuç — bias (tahmin − gözlem), °F, lead 1 gün
+
+| şehir | ecmwf_ifs025 | icon_seamless | best_match | lead-1 MAE aralığı |
+|---|---:|---:|---:|---:|
+| NY  | +1.39 | +0.39 | +2.11 | 1.8 – 2.9 |
+| CHI | −0.25 | −0.21 | +0.61 | 1.8 – 2.4 |
+| MIA | **−3.84** | −0.93 | −1.73 | 1.5 – 3.9 |
+| AUS | −0.79 | −0.72 | −1.73 | 1.8 – 2.4 |
+| DEN | −0.92 | −1.13 | +0.51 | 1.9 – 2.2 |
+| LAX | **+9.44** | **+2.40** | −0.96 | 2.2 – 9.5 |
+| PHL | −1.91 | −1.83 | −1.35 | 2.1 – 2.5 |
+
+n ≈ 117 gün/şehir.
+
+## Ne öğrendik
+
+**1. LAX'ta ECMWF 9.4°F sıcak.** Bu yıkıcı bir hata — ve nedeni anlaşılır:
+LAX kıyıda, deniz katmanının (marine layer) tam altında. 25 km'lik grid hücresi
+çok daha sıcak iç kesim havasını ortalamaya katıyor. Düzeltilmemiş bir ensemble
+ile LAX'ta işlem yapmak sistematik olarak yanlış tarafta olmak demekti — ve model
+bunu "yüksek güvenli edge" diye raporlardı.
+
+**2. Bias hem şehre hem modele göre değişiyor.** MIA'da ECMWF −3.84 iken ICON
+−0.93. LAX'ta ECMWF +9.44 iken best_match −0.96. Yani tek bir global düzeltme
+işe yaramaz; düzeltme şehir × model bazında olmak zorunda. Ve bu, Faz 3'teki
+"her modele eşit ağırlık" varsayımını da sorgulatıyor: eşit ağırlık, LAX'ta
+ECMWF'in 9°F'lik hatasını dağılımın içine taşıyor.
+
+**3. Faz 3'teki "edge" açıklandı.** NY'de model piyasadan sıcak görünüyordu;
+ölçülen NY bias'ı +0.39 ile +2.11 arası, sıcak yönde. Kovalar 2°F genişliğinde,
+yani 1-2°F'lik sapma tam da gördüğüm on puanlık farkları üretir. **O edge gerçek
+değildi.**
+
+**4. Belirsizliğin ölçeği.** Lead-1 MAE ~1.8-2.9°F, kova genişliği 2°F. Yani
+tahmin tipik olarak bir kova ıskalıyor. Bu, edge aramak için zorlu bir zemin:
+en iyi modelde bile hata kova genişliğinden büyük.
+
+## Bunu nasıl kullanacağım — ve nasıl kullanmayacağım
+
+**Kullanmayacağım:** bu çalışmadan çıkan sayıları doğrudan modele düzeltme
+katsayısı olarak gömmek. İki nedenle: (a) previous-runs deterministik tahmin
+verir, benim ensemble ortalamamın bias'ı birebir aynı olmayabilir; (b) sabit bir
+düzeltme, sonuçlara bakarak ayarlanmış bir parametre hâline gelir.
+
+**Kullanacağım:** bias düzeltmesini **yürüyen pencereyle (walk-forward)**, canlı
+toplanan kendi verimden, ve her karar için yalnızca o karardan ÖNCE yayınlanmış
+gözlemleri kullanarak tahmin edeceğim. Bu, tanımı gereği lookahead'e kapalı.
+Yukarıdaki çalışma da referans noktası olarak duracak: canlı veriden çıkan
+düzeltme bununla aynı büyüklük sırasında değilse, bir yerde hata var demektir.
+
+**Ayrıca:** LAX'ı baştan elemeyeceğim. Bias düzeltmesinden sonra kalibrasyonun
+ne olduğuna bakacağım; kötüyse rapora kötü olarak girecek. Şehir eleme kararı
+sonuca bakarak verilirse, bu da bir tür parametre ayarlamasıdır.
