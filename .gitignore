@@ -5,7 +5,6 @@ venv/
 data/*.db
 data/*.db-wal
 data/*.db-shm
-data/raw/
 .env
 *.egg-info/
 build/

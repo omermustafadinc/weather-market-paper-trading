@@ -114,7 +114,11 @@ DAILY_VARIABLE = "temperature_2m_max"
 
 #: Piyasa snapshot slotu. GitHub Actions cron'u ±birkaç dk kayabildiği için
 #: slot, kaymayı yutacak kadar geniş; idempotanlık buna dayanıyor.
-MARKET_SLOT_SECONDS = int(os.environ.get("WXBOT_MARKET_SLOT_SECONDS", 900))
+#:
+#: 30 dakika: günlük çözümlenen piyasalar için 48 karar noktası fazlasıyla
+#: yeterli, ve depolamayı makul tutuyor (repoya commit'leniyor). 15 dakika
+#: veriyi ikiye katlardı, karşılığında kayda değer bir şey kazandırmadan.
+MARKET_SLOT_SECONDS = int(os.environ.get("WXBOT_MARKET_SLOT_SECONDS", 1800))
 
 #: Tahmin slotu daha uzun: ensemble modelleri 3-12 saatte bir koşuyor, her 15
 #: dakikada bir çekmek aynı veriyi tekrar indirmek olurdu (Open-Meteo kotasını

@@ -1,0 +1,203 @@
+"""JSONL ham veriyi SQLite'a aktarır — ve doğrulama kapısı burasıdır.
+
+Ham veri (JSONL) tek doğru kaynak; SQLite ondan türetilir ve her an sıfırdan
+yeniden kurulabilir. Bu ayrımın asıl kazancı doğrulama: lookahead kuralları
+şemada CHECK kısıtı olarak duruyor, dolayısıyla **kirli bir kayıt SQLite'a
+giremez**. Girmeye çalışırsa ingest gürültülü biçimde başarısız olur; sessizce
+atlamaz.
+
+Idempotent: aynı JSONL'i tekrar aktarmak yeni satır üretmez (UNIQUE kısıtları).
+"""
+
+from __future__ import annotations
+
+import argparse
+import sqlite3
+import sys
+from pathlib import Path
+
+from . import db, rawstore
+from .clock import us_to_iso
+from .kalshi import field, parse_orderbook, to_dcents
+
+
+class IngestError(RuntimeError):
+    """Ham kayıt SQLite'a alınamadı. Sessizce atlamak yerine patlıyoruz."""
+
+
+# ---------------------------------------------------------------------------
+
+
+def _ensure_run(conn: sqlite3.Connection, run_uid: str, slot_id: int,
+                slot_seconds: int, started_at_us: int) -> int:
+    conn.execute(
+        "INSERT OR IGNORE INTO runs (run_uid, slot_id, slot_seconds, started_at_us,"
+        " finished_at_us, status) VALUES (?,?,?,?,?,'ok')",
+        (run_uid, slot_id, slot_seconds, started_at_us, started_at_us),
+    )
+    row = conn.execute("SELECT id FROM runs WHERE run_uid = ?", (run_uid,)).fetchone()
+    return int(row["id"])
+
+
+def ingest_market(conn: sqlite3.Connection, rec: dict,
+                  meta_index: dict[str, dict] | None = None) -> bool:
+    """Bir piyasa kaydını aktar. True = yeni satır yazıldı.
+
+    Kayıt tam metadata değil, o günün `market_meta` kaydından fark taşır;
+    burada birleştirip DB'ye tam hâlini yazıyoruz.
+    """
+    from . import config as cfg
+
+    run_id = _ensure_run(conn, rec.get("run_uid", "unknown"), rec["slot_id"],
+                         cfg.MARKET_SLOT_SECONDS, rec["fetched_at_us"])
+
+    if "market" in rec:                       # v1 öncesi düz kayıt
+        m = rec["market"]
+    else:
+        meta = (meta_index or {}).get(rec["market_ticker"])
+        if meta is None:
+            raise IngestError(
+                f"{rec['market_ticker']} için market_meta kaydı bulunamadı "
+                f"({rec['fetched_at_iso']}). Ham veri eksik."
+            )
+        m = rawstore.apply_delta(meta, rec["market_delta"])
+    try:
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO market_snapshots
+               (run_id, slot_id, purpose, venue, series_ticker, event_ticker,
+                market_ticker, fetched_at_us, fetched_at_iso, source_url,
+                raw_market_json, raw_book_json, yes_bid_dcents, yes_ask_dcents,
+                volume, open_interest)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (run_id, rec["slot_id"], rec["purpose"], rec["venue"],
+             rec["series_ticker"], rec["event_ticker"], rec["market_ticker"],
+             rec["fetched_at_us"], rec["fetched_at_iso"], rec["source_url"],
+             db.json_dumps(m), db.json_dumps(rec["book"]),
+             to_dcents(field(m, "yes_bid_dollars", "yes_bid")),
+             to_dcents(field(m, "yes_ask_dollars", "yes_ask")),
+             _num(field(m, "volume_fp", "volume")),
+             _num(field(m, "open_interest_fp", "open_interest"))),
+        )
+    except sqlite3.IntegrityError as exc:
+        raise IngestError(
+            f"piyasa kaydı reddedildi ({rec['market_ticker']} @ "
+            f"{rec['fetched_at_iso']}): {exc}"
+        ) from exc
+
+    # `lastrowid` bağlantı seviyesinde; INSERT OR IGNORE atlandığında önceki
+    # bir eklemenin rowid'ini döndürüp "yeni satır yazdım" yalanı söyler.
+    # `rowcount` gerçekten değişen satır sayısını verir.
+    if cur.rowcount != 1:
+        return False
+    snap_id = int(cur.lastrowid)
+    for lv in parse_orderbook(rec["book"]):
+        conn.execute(
+            "INSERT OR IGNORE INTO orderbook_levels"
+            " (snapshot_id, side, price_dcents, quantity, level_rank)"
+            " VALUES (?,?,?,?,?)",
+            (snap_id, lv.side, lv.price_dcents, lv.quantity, lv.rank),
+        )
+    return True
+
+
+def ingest_forecast(conn: sqlite3.Connection, rec: dict) -> int:
+    """Bir tahmin kaydını hedef günlere açarak aktar. Yazılan satır sayısını döndürür."""
+    from . import config as cfg
+
+    run_id = _ensure_run(conn, rec.get("run_uid", "unknown"), rec["slot_id"],
+                         cfg.FORECAST_SLOT_SECONDS, rec["fetched_at_us"])
+    written = 0
+    for target in rec.get("target_dates") or []:
+        try:
+            cur = conn.execute(
+                """INSERT OR IGNORE INTO forecast_snapshots
+                   (run_id, slot_id, provider, model, location_key, latitude,
+                    longitude, variable, target_date, fetched_at_us, fetched_at_iso,
+                    source_url, raw_json, member_count)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (run_id, rec["slot_id"], rec["provider"], rec["model"],
+                 rec["location_key"], rec["latitude"], rec["longitude"],
+                 rec["variable"], target, rec["fetched_at_us"], rec["fetched_at_iso"],
+                 rec["source_url"], db.json_dumps(rec["payload"]), rec["member_count"]),
+            )
+        except sqlite3.IntegrityError as exc:
+            raise IngestError(
+                f"tahmin kaydı reddedildi ({rec['location_key']}/{rec['model']} "
+                f"-> {target}): {exc}"
+            ) from exc
+        written += 1 if cur.rowcount == 1 else 0
+    return written
+
+
+def _num(v: object) -> float | None:
+    if v is None or v == "":
+        return None
+    try:
+        return float(v)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+# ---------------------------------------------------------------------------
+
+
+def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
+               *, verbose: bool = True) -> dict[str, int]:
+    stats = {"market_new": 0, "market_seen": 0, "forecast_new": 0, "forecast_seen": 0}
+
+    conn.execute("BEGIN")
+    try:
+        # Metadata gün bazlı; kayıtları da gün gün okuyup doğru indeksle eşliyoruz.
+        for day in rawstore.days("market", root):
+            meta_index = rawstore.load_meta_index(day, root)
+            for rec in rawstore.read_day("market", day, root):
+                stats["market_seen"] += 1
+                stats["market_new"] += 1 if ingest_market(conn, rec, meta_index) else 0
+        for rec in rawstore.read_all("forecast", root):
+            stats["forecast_seen"] += 1
+            stats["forecast_new"] += ingest_forecast(conn, rec)
+        conn.execute("COMMIT")
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+
+    if verbose:
+        print(f"piyasa : {stats['market_seen']} kayıt okundu, "
+              f"{stats['market_new']} yeni satır")
+        print(f"tahmin : {stats['forecast_seen']} kayıt okundu, "
+              f"{stats['forecast_new']} yeni satır")
+    return stats
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Ham JSONL'den SQLite kur")
+    ap.add_argument("--db", default=str(db.DEFAULT_DB_PATH))
+    ap.add_argument("--root", default=None, help="ham veri kökü (test için)")
+    ap.add_argument("--rebuild", action="store_true",
+                    help="var olan DB'yi silip sıfırdan kur")
+    ap.add_argument("--quiet", action="store_true")
+    args = ap.parse_args(argv)
+
+    dbp = Path(args.db)
+    if args.rebuild and dbp.exists():
+        for suffix in ("", "-wal", "-shm"):
+            p = Path(str(dbp) + suffix)
+            p.unlink(missing_ok=True)
+        if not args.quiet:
+            print(f"silindi: {dbp}")
+
+    conn = db.init_db(dbp)
+    try:
+        ingest_all(conn, Path(args.root) if args.root else None,
+                   verbose=not args.quiet)
+        # Doğrulama kapısı: tek ihlal varsa buradan geçilmez.
+        db.assert_no_lookahead(conn)
+        if not args.quiet:
+            print("lookahead denetimi: temiz")
+    finally:
+        conn.close()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

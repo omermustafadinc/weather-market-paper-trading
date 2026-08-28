@@ -28,6 +28,22 @@ Bunlar niyet beyanı değil, kodla zorlanıyor ve test ediliyor:
 python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 ```
 
+## Veri akışı
+
+```
+Kalshi API  ─┐
+Open-Meteo  ─┼─>  collect  ─>  data/raw/**.jsonl  ─>  ingest  ─>  data/wxbot.db
+NWS         ─┘                 (append-only,           (doğrulama       (türetilmiş,
+                                git'e commit)           kapısı)          silinebilir)
+```
+
+Toplayıcı GitHub Actions'ta 30 dakikada bir koşuyor (`.github/workflows/collect.yml`);
+Kalshi API'si geliştirme makinesinin ağından erişilemiyor. Ham veriyi lokale çekmek için:
+
+```bash
+git pull && ./.venv/bin/python -m wxbot.ingest --rebuild
+```
+
 ## Test
 
 ```bash
@@ -47,8 +63,11 @@ src/wxbot/
   db.py        bağlantı + lookahead tarayıcı (assert_no_lookahead)
   config.py    şehirler/istasyonlar (kontrat kurallarından doğrulanmış), modeller
   kalshi.py    read-only istemci + desi-sent fiyat normalizasyonu
+  rawstore.py  append-only JSONL: tek doğru kaynak
   collect.py   idempotent, devam edebilen snapshot toplayıcı
+  ingest.py    JSONL -> SQLite + lookahead doğrulama kapısı
 tests/         kısıtların testi
+data/raw/      ham veri (append-only JSONL, repoya commit'lenir)
 research/      Faz 0 ham erişilebilirlik kanıtları
 DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 ```
