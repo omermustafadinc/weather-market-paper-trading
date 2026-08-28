@@ -1,0 +1,4 @@
+requests>=2.32
+certifi>=2024.7.4
+numpy>=1.26
+pytest>=8.0
