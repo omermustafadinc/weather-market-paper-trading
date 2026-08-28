@@ -10,9 +10,17 @@ name: collect
 
 on:
   schedule:
-    # 30 dakikada bir. Saat başından kaçınıyoruz: GitHub'ın schedule event'i
-    # yoğun dakikalarda gecikiyor.
-    - cron: "7,37 * * * *"
+    # Saatte DÖRT tetikleme denemesi, ama veri slotu 30 dakika.
+    #
+    # Neden fazladan deneme: GitHub'ın schedule event'i sözleşme değil,
+    # "best-effort" — event'ler gecikiyor ve düşüyor (bu repoda ilk 3 pencere
+    # boş geçti). Fazladan deneme BEDAVA çünkü collector idempotent: aynı
+    # slotta ikinci kez koşmak tek satır bile yazmıyor. Yani :22 ve :52
+    # tetiklemeleri, :07 ve :37 düşerse devreye giren yedek; düşmezse
+    # saniyeler süren no-op.
+    #
+    # Saat başından kaçınıyoruz: yoğun dakikalarda gecikme daha fazla.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 # Üst üste binen koşular aynı dosyaya yazıp push çakışması yaratmasın.
@@ -41,8 +49,18 @@ jobs:
           python -m pip install --quiet --upgrade pip
           python -m pip install --quiet -e .
 
-      - name: Topla
+      - name: Topla (karar anı)
         run: python -m wxbot.collect
+
+      # Karar ile fill arasındaki gecikmeyi SİMÜLE etmiyoruz, gerçekten
+      # yaşıyoruz: 45 saniye sonra kitabı yeniden çekiyoruz. Faz 4'te fill
+      # bu ikinci kitaba karşı hesaplanacak, yani aradaki fiyat hareketi
+      # uydurma değil gerçek olacak.
+      - name: 45 sn bekle
+        run: sleep 45
+
+      - name: Topla (fill anı — yalnızca orderbook)
+        run: python -m wxbot.collect --purpose fill --markets-only
 
       - name: Doğrula (ham veriden SQLite kur + lookahead denetimi)
         run: |
