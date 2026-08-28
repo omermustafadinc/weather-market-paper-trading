@@ -66,6 +66,7 @@ src/wxbot/
   rawstore.py  append-only JSONL: tek doğru kaynak
   collect.py   idempotent, devam edebilen snapshot toplayıcı
   ingest.py    JSONL -> SQLite + lookahead doğrulama kapısı
+  model.py     ensemble -> dağılım -> kova olasılıkları
 tests/         kısıtların testi
 data/raw/      ham veri (append-only JSONL, repoya commit'lenir)
 research/      Faz 0 ham erişilebilirlik kanıtları
@@ -77,7 +78,7 @@ DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 - [x] **Faz 0** — araştırma, platform ve veri kaynağı kararı (`DECISIONS.md`)
 - [x] **Faz 1** — iskelet: HTTP guard, şema, lookahead testi
 - [x] **Faz 2** — collector (orderbook + tahmin snapshot'ları)
-- [ ] Faz 3 — model (ensemble → dağılım → kova olasılıkları)
+- [x] **Faz 3** — model (ensemble → dağılım → kova olasılıkları) — *kalibre edilmedi*
 - [ ] Faz 4 — strategy + simulator (fill gerçekçiliği, fee, Kelly)
 - [ ] Faz 5 — ledger + reporter + baseline'lar
 
