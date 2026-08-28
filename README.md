@@ -20,6 +20,7 @@ Bunlar niyet beyanı değil, kodla zorlanıyor ve test ediliyor:
 | Fill, karardan sonraki kitaba karşı | SQLite CHECK + tarayıcı | `test_no_lookahead.py` |
 | Her karar gerekçeli (işlem yapmama dahil) | SQLite CHECK | `test_no_lookahead.py` |
 | Ham veri append-only | `raw_*_json` sütunları UPDATE edilmez | — |
+| Fiyat kaybı yok (desi-sent) | `to_dcents`, ızgara dışı fiyat reddedilir | `test_prices.py` |
 
 ## Kurulum
 
@@ -44,6 +45,9 @@ src/wxbot/
   http.py      tek HTTP kapısı: whitelist + yalnızca GET + rate limit
   schema.sql   SQLite şeması; lookahead kuralları CHECK kısıtı olarak
   db.py        bağlantı + lookahead tarayıcı (assert_no_lookahead)
+  config.py    şehirler/istasyonlar (kontrat kurallarından doğrulanmış), modeller
+  kalshi.py    read-only istemci + desi-sent fiyat normalizasyonu
+  collect.py   idempotent, devam edebilen snapshot toplayıcı
 tests/         kısıtların testi
 research/      Faz 0 ham erişilebilirlik kanıtları
 DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
@@ -53,7 +57,7 @@ DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 
 - [x] **Faz 0** — araştırma, platform ve veri kaynağı kararı (`DECISIONS.md`)
 - [x] **Faz 1** — iskelet: HTTP guard, şema, lookahead testi
-- [ ] Faz 2 — collector (orderbook + tahmin snapshot'ları)
+- [x] **Faz 2** — collector (orderbook + tahmin snapshot'ları)
 - [ ] Faz 3 — model (ensemble → dağılım → kova olasılıkları)
 - [ ] Faz 4 — strategy + simulator (fill gerçekçiliği, fee, Kelly)
 - [ ] Faz 5 — ledger + reporter + baseline'lar

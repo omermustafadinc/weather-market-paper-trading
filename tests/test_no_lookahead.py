@@ -80,10 +80,10 @@ def test_check_kisiti_30sn_alti_fill_reddeder(conn: sqlite3.Connection) -> None:
             """INSERT INTO sim_fills
                (decision_id, fill_snapshot_id, decision_at_us, book_asof_us,
                 filled_at_us, filled_at_iso, side, requested_contracts,
-                filled_contracts, avg_price_cents, fee_cents, fill_status)
+                filled_contracts, avg_price_dcents, fee_dcents, fill_status)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (fx.decision_id, fx.snap_fill, T2, T3, too_soon, us_to_iso(too_soon),
-             "yes", 5.0, 5.0, 44.0, 1.0, "full"),
+             "yes", 5.0, 5.0, 440.0, 10.0, "full"),
         )
 
 
@@ -95,10 +95,10 @@ def test_check_kisiti_istenenden_fazla_fill_reddeder(conn: sqlite3.Connection) -
             """INSERT INTO sim_fills
                (decision_id, fill_snapshot_id, decision_at_us, book_asof_us,
                 filled_at_us, filled_at_iso, side, requested_contracts,
-                filled_contracts, avg_price_cents, fee_cents, fill_status)
+                filled_contracts, avg_price_dcents, fee_dcents, fill_status)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (fx.decision_id, fx.snap_fill, T2, T3, T4, us_to_iso(T4),
-             "yes", 5.0, 9.0, 44.0, 1.0, "full"),   # 5 istendi, 9 doldu
+             "yes", 5.0, 9.0, 440.0, 10.0, "full"),   # 5 istendi, 9 doldu
         )
 
 

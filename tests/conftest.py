@@ -64,11 +64,11 @@ class Fixture:
             """INSERT INTO market_snapshots
                (run_id, slot_id, purpose, venue, series_ticker, event_ticker,
                 market_ticker, fetched_at_us, fetched_at_iso, source_url,
-                raw_market_json, raw_book_json, yes_bid_cents, yes_ask_cents)
+                raw_market_json, raw_book_json, yes_bid_dcents, yes_ask_dcents)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (self.run_id, SLOT, purpose, VENUE, SERIES, EVENT, TICKER, at_us,
              us_to_iso(at_us), "https://api.elections.kalshi.com/x", "{}",
-             '{"yes_dollars":[["0.4300","52.00"]],"no_dollars":[]}', 43, 44),
+             '{"yes_dollars":[["0.4300","52.00"]],"no_dollars":[]}', 430, 440),
         )
         return int(cur.lastrowid)
 
@@ -106,10 +106,10 @@ class Fixture:
             """INSERT INTO sim_fills
                (decision_id, fill_snapshot_id, decision_at_us, book_asof_us,
                 filled_at_us, filled_at_iso, side, requested_contracts,
-                filled_contracts, avg_price_cents, fee_cents, fill_status)
+                filled_contracts, avg_price_dcents, fee_dcents, fill_status)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (self.decision_id, self.snap_fill, T2, T3, T4, us_to_iso(T4),
-             "yes", 5.0, 5.0, 44.0, 1.0, "full"),
+             "yes", 5.0, 5.0, 440.0, 10.0, "full"),
         )
         return int(cur.lastrowid)
 

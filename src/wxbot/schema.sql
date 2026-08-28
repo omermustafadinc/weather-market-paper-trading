@@ -54,9 +54,11 @@ CREATE TABLE IF NOT EXISTS market_snapshots (
     raw_market_json TEXT    NOT NULL,   -- ham; asla üzerine yazılmaz
     raw_book_json   TEXT    NOT NULL,   -- ham orderbook; asla üzerine yazılmaz
 
-    -- Türetilmiş kolaylık alanları (sent cinsinden tamsayı; float yok)
-    yes_bid_cents   INTEGER,
-    yes_ask_cents   INTEGER,
+    -- Türetilmiş kolaylık alanları. Fiyatlar DESİ-SENT (1/1000 dolar) tamsayı:
+    -- hava piyasaları uçlarda 0.1 sent adımla hareket ediyor (tapered_deci_cent),
+    -- sent'e yuvarlamak ucuz kontratlarda hayali edge üretirdi.
+    yes_bid_dcents  INTEGER,
+    yes_ask_dcents  INTEGER,
     volume          REAL,
     open_interest   REAL,
 
@@ -72,10 +74,10 @@ CREATE TABLE IF NOT EXISTS orderbook_levels (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     snapshot_id  INTEGER NOT NULL REFERENCES market_snapshots (id) ON DELETE CASCADE,
     side         TEXT    NOT NULL CHECK (side IN ('yes', 'no')),
-    price_cents  INTEGER NOT NULL CHECK (price_cents BETWEEN 0 AND 100),
+    price_dcents INTEGER NOT NULL CHECK (price_dcents BETWEEN 0 AND 1000),
     quantity     REAL    NOT NULL CHECK (quantity >= 0),
     level_rank   INTEGER NOT NULL,   -- 0 = en iyi fiyat
-    UNIQUE (snapshot_id, side, price_cents)
+    UNIQUE (snapshot_id, side, price_dcents)
 );
 CREATE INDEX IF NOT EXISTS idx_obl_snap ON orderbook_levels (snapshot_id, side, level_rank);
 
@@ -172,9 +174,11 @@ CREATE TABLE IF NOT EXISTS sim_fills (
     side                TEXT    NOT NULL CHECK (side IN ('yes', 'no')),
     requested_contracts REAL    NOT NULL CHECK (requested_contracts >= 0),
     filled_contracts    REAL    NOT NULL CHECK (filled_contracts >= 0),
-    avg_price_cents     REAL             CHECK (avg_price_cents IS NULL
-                                                OR avg_price_cents BETWEEN 0 AND 100),
-    fee_cents           REAL    NOT NULL DEFAULT 0 CHECK (fee_cents >= 0),
+    -- Ortalama fill fiyatı seviyeler arası ağırlıklı ortalama olduğu için
+    -- ızgaraya oturmayabilir; bu yüzden REAL.
+    avg_price_dcents    REAL             CHECK (avg_price_dcents IS NULL
+                                                OR avg_price_dcents BETWEEN 0 AND 1000),
+    fee_dcents          REAL    NOT NULL DEFAULT 0 CHECK (fee_dcents >= 0),
     levels_consumed     TEXT    NOT NULL DEFAULT '[]',  -- hangi seviyeler yendi, JSON
     fill_status         TEXT    NOT NULL
                         CHECK (fill_status IN ('full', 'partial', 'none')),
