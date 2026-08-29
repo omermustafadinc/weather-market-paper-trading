@@ -35,7 +35,7 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -49,52 +49,21 @@ jobs:
           python -m pip install --quiet --upgrade pip
           python -m pip install --quiet -e .
 
-      - name: Topla (karar anı)
-        run: python -m wxbot.collect
-
-      - name: Veritabanını kur
-        run: python -m wxbot.ingest --db /tmp/wx.db --rebuild --quiet
-
-      # KARAR ANI. Bundan sonrası artık kararı değiştiremez.
-      - name: Karar ver
-        run: python -m wxbot.agent decide --db /tmp/wx.db
-
-      # Karar ile fill arasındaki gecikme SİMÜLE edilmiyor, gerçekten
-      # yaşanıyor. Ölçtük: piyasaların ~%26'sı bu sürede hareket ediyor.
-      - name: 45 sn bekle
-        run: sleep 45
-
-      - name: Topla (fill anı — yalnızca orderbook)
-        run: python -m wxbot.collect --purpose fill --markets-only
-
-      - name: Kararları ve yeni kitabı aktar
-        run: python -m wxbot.ingest --db /tmp/wx.db --quiet
-
-      - name: Fill hesapla (gecikme sonrası kitaba karşı)
-        run: python -m wxbot.agent fill --db /tmp/wx.db
-
-      - name: Doğrula (sıfırdan kur + lookahead denetimi)
+      - name: Git kimliği
         run: |
-          python -m wxbot.ingest --db /tmp/verify.db --rebuild --quiet
-          echo "ingest ve lookahead denetimi geçti"
-
-      - name: Ham veriyi commit'le
-        run: |
-          if [ -z "$(git status --porcelain data/raw)" ]; then
-            echo "değişiklik yok"
-            exit 0
-          fi
           git config user.name  "wxbot-collector"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw
-          git commit -m "veri: $(date -u '+%Y-%m-%dT%H:%MZ') toplama"
 
-          # Eşzamanlı bir koşu araya girmiş olabilir; ham veri append-only
-          # olduğu için rebase güvenli.
-          for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push origin main && exit 0
-            echo "push denemesi $i başarısız, tekrar deneniyor"
-            sleep 5
-          done
-          echo "push başarısız" >&2
-          exit 1
+      # Bir koşuda İKİ döngü. Sebebi ölçüm: GitHub'ın schedule event'i bu
+      # repoda 8.7 saatte ~35 pencereden 1'ini tetikledi (~%3). Tetikleme
+      # sıklığını kontrol edemiyoruz; her tetiklemeyi daha değerli yapıyoruz.
+      # Veri her döngüden sonra commit'leniyor: koşu yarıda kesilirse ilk
+      # döngünün verisi kaybolmasın.
+      - name: Döngüler (topla -> karar -> 45sn -> kitap -> fill -> doğrula)
+        run: |
+          python -m wxbot.cycle --cycles 2 --gap-seconds 1500 \
+            --commit-cmd 'bash .github/commit-data.sh'
+
+      - name: Kalan veriyi commit'le
+        if: always()
+        run: bash .github/commit-data.sh
