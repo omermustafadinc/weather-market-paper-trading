@@ -234,7 +234,8 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
                *, verbose: bool = True) -> dict[str, int]:
     stats = {"market_new": 0, "market_seen": 0, "forecast_new": 0, "forecast_seen": 0,
              "decision_new": 0, "decision_seen": 0, "fill_new": 0, "fill_seen": 0,
-             "settlement_new": 0, "settlement_seen": 0}
+             "settlement_new": 0, "settlement_seen": 0,
+             "decision_invalid": 0, "fill_invalid": 0}
 
     conn.execute("BEGIN")
     try:
@@ -247,12 +248,20 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
         for rec in rawstore.read_all("forecast", root):
             stats["forecast_seen"] += 1
             stats["forecast_new"] += ingest_forecast(conn, rec)
+        # İptal edilmiş kayıtlar atlanır — silinmezler, yalnızca aktarılmazlar.
+        invalid = rawstore.invalidated_keys(root)
         # Sıra önemli: fill kaydı kendi kararına referans veriyor.
         for rec in rawstore.read_all("decision", root):
             stats["decision_seen"] += 1
+            if (rec["venue"], rec["market_ticker"], rec["slot_id"]) in invalid["decision"]:
+                stats["decision_invalid"] += 1
+                continue
             stats["decision_new"] += 1 if ingest_decision(conn, rec) else 0
         for rec in rawstore.read_all("fill", root):
             stats["fill_seen"] += 1
+            if (rec["venue"], rec["market_ticker"], rec["slot_id"]) in invalid["fill"]:
+                stats["fill_invalid"] += 1
+                continue
             stats["fill_new"] += 1 if ingest_fill(conn, rec) else 0
         for rec in rawstore.read_all("settlement", root):
             stats["settlement_seen"] += 1
@@ -272,6 +281,9 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
                   f"{stats['decision_new']} yeni satır")
             print(f"fill   : {stats['fill_seen']} kayıt okundu, "
                   f"{stats['fill_new']} yeni satır")
+            if stats["decision_invalid"] or stats["fill_invalid"]:
+                print(f"iptal  : {stats['decision_invalid']} karar, "
+                      f"{stats['fill_invalid']} fill (karantina kaydı gereği atlandı)")
         if stats["settlement_seen"]:
             print(f"çözüm  : {stats['settlement_seen']} kayıt okundu, "
                   f"{stats['settlement_new']} yeni satır")

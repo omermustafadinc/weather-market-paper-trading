@@ -216,3 +216,45 @@ def test_ingest_metadatayi_geri_kurar(tmp_path, conn) -> None:
     stored = json.loads(row["raw_market_json"])
     assert stored == _market("A", bid="0.5100"), "metadata geri kurulamadı"
     assert row["yes_bid_dcents"] == 510
+
+
+# ---------------------------------------------------------------------------
+# İptal (karantina) — satır silmeden
+# ---------------------------------------------------------------------------
+
+
+def test_iptal_kaydi_kaydi_silmeden_devre_disi_birakir(tmp_path, conn) -> None:
+    """Hatalı kuralla üretilmiş kayıtlar SİLİNMEZ, iptal edilir.
+
+    İlk denemede satırları dosyadan silmiştim; iki sorun çıktı: (a) "ham veri
+    append-only" şartını çiğniyor, (b) eşzamanlı bir CI koşusu aynı dosyaya
+    eklerken git çakışması doğuruyor — gerçekten oldu.
+    """
+    rawstore.append("market_meta", _meta_rec(ticker="A"), tmp_path)
+    rawstore.append("market", _market_rec(ticker="A", slot=1), tmp_path)
+    ingest.ingest_all(conn, tmp_path, verbose=False)
+
+    rawstore.append("invalidation", rawstore.invalidation_record(
+        run_uid="test", target_kind="decision",
+        keys=[["kalshi", "A", 1]], reason="test", at_us=T), tmp_path)
+
+    keys = rawstore.invalidated_keys(tmp_path)
+    assert ("kalshi", "A", 1) in keys["decision"]
+    assert keys["fill"] == set()
+
+    # Ham kayıt dosyada duruyor olmalı
+    assert len(list(rawstore.read_day("market", "2026-08-28", tmp_path))) == 1
+
+
+def test_iptal_yalnizca_turetilmis_kayitlar_icin() -> None:
+    """Gözlem kayıtları (piyasa/tahmin/çözümleme) iptal edilemez — onlar
+    kanıt, türetilmiş çıktı değil."""
+    for kind in ("market", "forecast", "settlement", "market_meta"):
+        with pytest.raises(ValueError, match="türetilmiş"):
+            rawstore.invalidation_record(run_uid="t", target_kind=kind,
+                                         keys=[], reason="r", at_us=T)
+
+
+def test_iptalsiz_durumda_bos_kume(tmp_path) -> None:
+    keys = rawstore.invalidated_keys(tmp_path)
+    assert keys == {"decision": set(), "fill": set()}

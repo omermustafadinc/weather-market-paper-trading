@@ -34,7 +34,8 @@ RAW_ROOT = Path(os.environ.get("WXBOT_RAW_ROOT")
 #: Kayıt biçimi sürümü. Şekil değişirse artar; ingest eski sürümleri de okur.
 RECORD_VERSION = 1
 
-KINDS = ("market", "market_meta", "forecast", "decision", "fill", "settlement")
+KINDS = ("market", "market_meta", "forecast", "decision", "fill",
+         "settlement", "invalidation")
 
 
 def path_for(kind: str, fetched_at_us: int, root: Path | None = None) -> Path:
@@ -309,3 +310,41 @@ def settlement_record(
 
 def collected_settlement_keys(day: str, root: Path | None = None) -> set[str]:
     return {r["market_ticker"] for r in read_day("settlement", day, root)}
+
+
+# ---------------------------------------------------------------------------
+# İptal (karantina) — satır silmeden
+# ---------------------------------------------------------------------------
+#
+# Hatalı bir kuralla üretilmiş türetilmiş kayıtları (karar/fill) devre dışı
+# bırakmak gerekebiliyor. İlk denemede satırları dosyadan sildim ve iki sorun
+# çıktı: (a) "ham veri append-only, asla üzerine yazma" şartını çiğniyor,
+# (b) eşzamanlı bir CI koşusu aynı dosyaya eklerken git çakışması doğuyor.
+#
+# Doğrusu: hiçbir şey silme, bir İPTAL KAYDI ekle. Ingest bu kayıtları okuyup
+# eşleşenleri atlar. Kayıt duruyor, neden iptal edildiği de duruyor.
+
+
+def invalidation_record(
+    *, run_uid: str, target_kind: str, keys: list[list], reason: str,
+    at_us: int,
+) -> dict[str, Any]:
+    """`keys`: [venue, market_ticker, slot_id] üçlüleri."""
+    if target_kind not in ("decision", "fill"):
+        raise ValueError(f"yalnızca türetilmiş kayıtlar iptal edilebilir: {target_kind!r}")
+    return {
+        "v": RECORD_VERSION, "kind": "invalidation", "run_uid": run_uid,
+        "target_kind": target_kind, "keys": [list(k) for k in keys],
+        "reason": reason, "fetched_at_us": at_us,
+    }
+
+
+def invalidated_keys(root: Path | None = None) -> dict[str, set[tuple]]:
+    """{target_kind: {(venue, market_ticker, slot_id), ...}}"""
+    out: dict[str, set[tuple]] = {"decision": set(), "fill": set()}
+    for rec in read_all("invalidation", root):
+        tk = rec.get("target_kind")
+        if tk in out:
+            for k in rec.get("keys", []):
+                out[tk].add((k[0], k[1], int(k[2])))
+    return out
