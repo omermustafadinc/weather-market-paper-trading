@@ -42,11 +42,16 @@ def _run_uid() -> str:
 
 def collect_markets(
     client: KalshiClient, run_uid: str, *, purpose: str = "decision",
-    horizon_days: int = cfg.HORIZON_DAYS, root=None, verbose: bool = True,
+    horizon_days: int = cfg.HORIZON_DAYS, root=None, anchor_us: int | None = None,
+    verbose: bool = True,
 ) -> dict[str, int]:
+    # Slot, çağıran tarafından verilen tek bir ana göre hesaplanır. Her adımın
+    # kendi "şu an"ını kullanması, döngü slot sınırını aştığında karar adımının
+    # boş slota bakmasına yol açıyordu — sessizce sıfır karar üreten bir yarış.
+    anchor = anchor_us if anchor_us is not None else now_us()
     venue = cfg.venue_name()
-    slot_id = slot_id_for(now_us(), cfg.MARKET_SLOT_SECONDS)
-    today_utc = us_to_dt(now_us()).date().isoformat()
+    slot_id = slot_id_for(anchor, cfg.MARKET_SLOT_SECONDS)
+    today_utc = us_to_dt(anchor).date().isoformat()
     already = rawstore.collected_market_keys(today_utc, slot_id, purpose, root)
     # Metadata günde bir kez yazılır; snapshot'lar ondan farkı taşır (kayıpsız).
     meta_index = rawstore.load_meta_index(today_utc, root)
@@ -122,12 +127,13 @@ def collect_markets(
 
 def collect_forecasts(
     fetcher: Fetcher, run_uid: str, *, horizon_days: int = cfg.HORIZON_DAYS,
-    root=None, verbose: bool = True,
+    root=None, anchor_us: int | None = None, verbose: bool = True,
 ) -> dict[str, int]:
     """Tahminin kendi (daha uzun) slotu var: ensemble modelleri 3-12 saatte bir
     koşuyor, 15 dakikada bir çekmek aynı veriyi tekrar indirmek olurdu."""
-    slot_id = slot_id_for(now_us(), cfg.FORECAST_SLOT_SECONDS)
-    today_utc = us_to_dt(now_us()).date().isoformat()
+    anchor = anchor_us if anchor_us is not None else now_us()
+    slot_id = slot_id_for(anchor, cfg.FORECAST_SLOT_SECONDS)
+    today_utc = us_to_dt(anchor).date().isoformat()
     already = rawstore.collected_forecast_keys(today_utc, slot_id, root)
 
     stats = {"written": 0, "skipped": 0, "errors": 0, "thin": 0}
@@ -190,6 +196,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--markets-only", action="store_true")
     ap.add_argument("--forecasts-only", action="store_true")
     ap.add_argument("--root", default=None, help="ham veri kökü (test için)")
+    ap.add_argument("--anchor-us", type=int, default=None,
+                    help="slotların türetileceği an (UTC mikrosaniye). "
+                         "Döngü boyunca tek bir an kullanılsın diye.")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
 
@@ -205,9 +214,12 @@ def main(argv: list[str] | None = None) -> int:
         if not args.forecasts_only:
             errors += collect_markets(KalshiClient(f, cfg.kalshi_base()), run_uid,
                                       purpose=args.purpose, root=root,
+                                      anchor_us=args.anchor_us,
                                       verbose=verbose)["errors"]
         if not args.markets_only:
-            errors += collect_forecasts(f, run_uid, root=root, verbose=verbose)["errors"]
+            errors += collect_forecasts(f, run_uid, root=root,
+                                        anchor_us=args.anchor_us,
+                                        verbose=verbose)["errors"]
 
     # Hata olsa bile toplanan veri geçerli; çıkış kodu durumu bildirir.
     return 1 if errors else 0

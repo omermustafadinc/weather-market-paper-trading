@@ -26,7 +26,10 @@ from typing import Any, Iterator
 
 from .clock import us_to_dt
 
-RAW_ROOT = Path(__file__).resolve().parents[2] / "data" / "raw"
+#: Ham veri kökü. `WXBOT_RAW_ROOT` ile değiştirilebilir — lokal denemelerin
+#: gerçek veriye karışmaması için (alt süreçler de bu değişkeni görür).
+RAW_ROOT = Path(os.environ.get("WXBOT_RAW_ROOT")
+                or Path(__file__).resolve().parents[2] / "data" / "raw")
 
 #: Kayıt biçimi sürümü. Şekil değişirse artar; ingest eski sürümleri de okur.
 RECORD_VERSION = 1

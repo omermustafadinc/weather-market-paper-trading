@@ -30,43 +30,61 @@ from . import db
 from .clock import now_us, us_to_iso
 
 
-def _run(args: list[str]) -> int:
+def build_command(module: str, args: list[str] | None = None) -> list[str]:
+    """Alt modül komutunu kur. Saf fonksiyon — test edilebilsin diye ayrı.
+
+    (Bu ayrımın sebebi somut: ilk sürümde komut `python -m -m wxbot.collect`
+    olarak kuruluyordu ve hata ancak üretimde ortaya çıktı. Artık testi var.)
+    """
+    return [sys.executable, "-m", module, *(args or [])]
+
+
+def _run(module: str, args: list[str] | None = None) -> int:
     """Alt modülü ayrı süreçte çalıştır; biri patlarsa döngü devam etsin."""
-    print(f"  $ {' '.join(args[2:])}", flush=True)
-    return subprocess.call([sys.executable, "-m"] + args[1:])
+    cmd = build_command(module, args)
+    print(f"  $ python -m {module} {' '.join(args or [])}", flush=True)
+    return subprocess.call(cmd)
 
 
 def one_cycle(db_path: str, *, delay_seconds: int = cfg.FILL_DELAY_SECONDS,
               edge_margin: float | None = None) -> bool:
-    """Tek döngü. Kritik bir adım başarısız olursa False döner."""
-    print(f"\n=== döngü başlıyor {us_to_iso(now_us())} "
-          f"(slot {db.slot_id_for(now_us(), cfg.MARKET_SLOT_SECONDS)}) ===", flush=True)
+    """Tek döngü. Kritik bir adım başarısız olursa False döner.
 
-    if _run(["python", "-m", "wxbot.collect"]) != 0:
+    Slot döngü başında BİR KEZ hesaplanıp her adıma geçirilir. Her adımın kendi
+    "şu an"ını kullanması, döngü 30 dakikalık slot sınırını aştığında karar
+    adımının boş slota bakmasına yol açıyordu — sessizce sıfır karar üreten
+    bir yarış. Lokal denemede yakalandı.
+    """
+    anchor = now_us()
+    slot = db.slot_id_for(anchor, cfg.MARKET_SLOT_SECONDS)
+    anchor_args = ["--anchor-us", str(anchor)]
+    print(f"\n=== döngü başlıyor {us_to_iso(anchor)} (slot {slot}) ===", flush=True)
+
+    if _run("wxbot.collect", anchor_args) != 0:
         print("  toplama hata verdi, döngü yarıda kesiliyor", file=sys.stderr)
         return False
-    if _run(["python", "-m", "wxbot.ingest", "--db", db_path, "--rebuild", "--quiet"]) != 0:
+    if _run("wxbot.ingest", ["--db", db_path, "--rebuild", "--quiet"]) != 0:
         return False
 
-    decide = ["python", "-m", "wxbot.agent", "decide", "--db", db_path]
+    decide = ["decide", "--db", db_path, "--slot", str(slot)]
     if edge_margin is not None:
         decide += ["--edge-margin", str(edge_margin)]
-    if _run(decide) != 0:
+    if _run("wxbot.agent", decide) != 0:
         return False
 
     print(f"  … {delay_seconds} sn bekleniyor (karar -> fill gecikmesi)", flush=True)
     time.sleep(delay_seconds)
 
-    if _run(["python", "-m", "wxbot.collect", "--purpose", "fill", "--markets-only"]) != 0:
+    if _run("wxbot.collect",
+            ["--purpose", "fill", "--markets-only"] + anchor_args) != 0:
         return False
-    if _run(["python", "-m", "wxbot.ingest", "--db", db_path, "--quiet"]) != 0:
+    if _run("wxbot.ingest", ["--db", db_path, "--quiet"]) != 0:
         return False
-    if _run(["python", "-m", "wxbot.agent", "fill", "--db", db_path]) != 0:
+    if _run("wxbot.agent", ["fill", "--db", db_path, "--slot", str(slot)]) != 0:
         return False
 
     # Son söz: her şeyi sıfırdan kur ve lookahead denetiminden geçir.
-    return _run(["python", "-m", "wxbot.ingest", "--db", "/tmp/verify.db",
-                 "--rebuild", "--quiet"]) == 0
+    return _run("wxbot.ingest", ["--db", "/tmp/verify.db", "--rebuild", "--quiet"]) == 0
 
 
 def main(argv: list[str] | None = None) -> int:
