@@ -64,6 +64,23 @@ jobs:
           python -m wxbot.cycle --cycles 2 --gap-seconds 1500 \
             --commit-cmd 'bash .github/commit-data.sh'
 
-      - name: Kalan veriyi commit'le
+      # Çözümleme koşu başına bir kez (döngü başına değil): 7 şehir × ~15 CLI
+      # ürünü çekiyor, her döngüde tekrarlamak gereksiz yük olurdu.
+      - name: Çözümle (NWS CLI ile sonuçları kapat)
         if: always()
-        run: bash .github/commit-data.sh
+        run: |
+          python -m wxbot.ingest --db /tmp/wx.db --rebuild --quiet
+          python -m wxbot.settle --db /tmp/wx.db
+
+      - name: Rapor
+        if: always()
+        run: |
+          python -m wxbot.ingest --db /tmp/wx.db --rebuild --quiet
+          python -m wxbot.report --db /tmp/wx.db --out REPORT.md
+          cat REPORT.md
+
+      - name: Kalan veriyi ve raporu commit'le
+        if: always()
+        run: |
+          git add -A data/raw REPORT.md 2>/dev/null || true
+          bash .github/commit-data.sh

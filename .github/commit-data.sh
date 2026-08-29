@@ -5,12 +5,12 @@
 # verisi kaybolmasın. Ham veri append-only olduğu için rebase güvenli.
 set -u
 
-if [ -z "$(git status --porcelain data/raw)" ]; then
+if [ -z "$(git status --porcelain data/raw REPORT.md)" ]; then
   echo "  commit: değişiklik yok"
   exit 0
 fi
 
-git add data/raw
+git add data/raw REPORT.md 2>/dev/null || git add data/raw
 git commit -q -m "veri: $(date -u '+%Y-%m-%dT%H:%MZ') toplama"
 
 for i in 1 2 3 4 5; do

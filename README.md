@@ -72,6 +72,10 @@ src/wxbot/
   agent.py     karar ver / gecikme sonrası doldur
   groundtruth.py  NWS CLI + NCEI gözlem
   bias.py      grid-istasyon bias çalışması
+  settle.py    NWS CLI ile çözümleme (kova -> 0/1)
+  report.py    Brier, kalibrasyon, PnL (fee öncesi/sonrası), baseline'lar
+  quarantine.py  kirlenmiş türetilmiş kayıtları iptal et (silmeden)
+  cycle.py     tam döngü: topla -> karar -> 45sn -> kitap -> fill -> doğrula
 tests/         kısıtların testi
 data/raw/      ham veri (append-only JSONL, repoya commit'lenir)
 research/      Faz 0 ham erişilebilirlik kanıtları
@@ -85,7 +89,7 @@ DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 - [x] **Faz 2** — collector (orderbook + tahmin snapshot'ları)
 - [x] **Faz 3** — model (ensemble → dağılım → kova olasılıkları) — *kalibre edilmedi*
 - [x] **Faz 4** — strategy + simulator (fill gerçekçiliği, fee, Kelly)
-- [ ] Faz 5 — ledger + reporter + baseline'lar
+- [x] **Faz 5** — ledger + reporter + baseline'lar — *veri bekleniyor*
 
 ## Veri kaynakları
 
