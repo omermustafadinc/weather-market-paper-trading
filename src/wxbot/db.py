@@ -127,6 +127,18 @@ _CHECKS: tuple[tuple[str, str, str], ...] = (
         """,
     ),
     (
+        "decision_on_past_or_today",
+        "Karar, hedef günü geçmiş veya içinde bulunulan bir olayda verilmiş",
+        """
+        SELECT id,
+               'hedef ' || target_date || ' <= karar günü '
+                   || substr(decision_at_iso, 1, 10)
+                   || ' (' || market_ticker || ')' AS detail
+        FROM decisions
+        WHERE target_date <= substr(decision_at_iso, 1, 10)
+        """,
+    ),
+    (
         "fill_before_min_delay",
         "Fill, karardan sonra 30 saniye beklemeden gerçekleşmiş",
         """
@@ -182,6 +194,7 @@ def scan_lookahead_violations(conn: sqlite3.Connection) -> list[Violation]:
         "decision_uses_future_market_snapshot": "decisions",
         "decision_uses_future_forecast": "decisions",
         "decision_after_settlement": "decisions",
+        "decision_on_past_or_today": "decisions",
         "fill_before_min_delay": "sim_fills",
         "fill_uses_stale_book": "sim_fills",
         "fill_book_snapshot_mismatch": "sim_fills",

@@ -199,6 +199,7 @@ def test_her_kontrolun_testi_var() -> None:
         "fill_uses_stale_book",
         "fill_book_snapshot_mismatch",
         "settlement_before_target_end",
+        "decision_on_past_or_today",
     }
     assert set(db.check_names()) == tested, (
         "db._CHECKS ile test kapsamı ayrıştı — yeni kontrole test yaz."
@@ -217,3 +218,25 @@ def test_gercek_veritabani_temiz() -> None:
         db.assert_no_lookahead(conn)
     finally:
         conn.close()
+
+
+def test_gecmis_veya_bugun_hedefli_karar_yakalanir(fx: Fixture) -> None:
+    """Hedef günü geçmiş/bugün olan bir karar, tanımı gereği şüphelidir.
+
+    Bu kontrol bir ihlalden doğdu: ajan dünün piyasasında karar verdi ve
+    o piyasanın NWS CLI raporu 5 saat önce yayınlanmıştı. Ayrıca geçmiş
+    günler için Open-Meteo tahmin değil analiz döndürüyor.
+
+    Zaman damgaları tek tek tutarlı olduğu için hiçbir CHECK kısıtı bunu
+    göremez; kural veriye gömülmeli ki bir daha elle fark etmeye kalmasın.
+    """
+    fx.corrupt("UPDATE decisions SET target_date = ? WHERE id = ?",
+               ("2026-08-27", fx.decision_id))          # karar günü 08-27
+    violations = db.scan_lookahead_violations(fx.conn)
+    assert "decision_on_past_or_today" in {v.check for v in violations}
+    with pytest.raises(db.LookaheadError, match="decision_on_past_or_today"):
+        db.assert_no_lookahead(fx.conn)
+
+
+def test_gelecek_hedefli_karar_temiz(fx: Fixture) -> None:
+    db.assert_no_lookahead(fx.conn)      # fixture hedefi 2026-08-28, karar 08-27
