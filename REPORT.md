@@ -1,16 +1,16 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-08-29T09:53:14.097204Z
+üretim zamanı : 2026-08-29T15:09:26.469801Z
 lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot            948
-  orderbook seviyesi       57880
-  tahmin snapshot            756
-  karar                        0
-  simüle fill                  0
-  çözümlenmiş kova            42
+  piyasa snapshot           1284
+  orderbook seviyesi       73728
+  tahmin snapshot           1008
+  karar                       84
+  simüle fill                 22
+  çözümlenmiş kova            54
 
 ## SONUÇ YOK
   24 saatlik lead time'da değerlendirilebilir tahmin-sonuç çifti yok.
@@ -23,6 +23,8 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
     MIA   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
     NY    2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
     PHL   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
+    AUS   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 10.7 saat
+    DEN   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 11.7 saat
 
   Daha uzun lead istiyorsak veri birikmesini beklemek gerek:
   toplama 2026-08-28 18:18Z'de başladı, o günün hedefleri için
