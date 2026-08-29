@@ -584,3 +584,29 @@ ve muhtemelen kötü olacaklar. Bu da bir ölçüm — kötü çıkarsa kötü r
 
 `REPORT.md` — her koşuda otomatik güncellenip repoya commit'leniyor.
 Şu an "SONUÇ YOK" ve nedenini yazıyor.
+
+## Günlük pencere: Kalshi olayları ~09:33Z'de açılıyor
+
+Doğrulama koşusu (07:06Z) sıfır karar üretti. Sebep bir hata değil:
+
+```
+karar : 0 karar, 7 olay bugün/geçmiş (atlandı)
+KXHIGHNY-26AUG29 created_time = 2026-08-28T09:33:01Z
+```
+
+Kalshi ertesi günün günlük sıcaklık olaylarını **her gün ~09:33Z civarında**
+açıyor. 07:06Z'de 30 Ağustos hedefli olay henüz yoktu; elde yalnızca bugün ve
+dün vardı, ikisi de "yalnızca gelecek günler" kuralıyla doğru şekilde elendi.
+
+**Sonucu:** karar üretimi için kullanışlı pencere ~09:33Z ile gün sonu arası,
+yani günün ~14.5 saati. Tetikleme oranımızla (günde ~2) her iki tetiklemenin de
+09:33Z öncesine düşme olasılığı ~%16 — o günlerde karar üretilmez.
+
+Bu **kalibrasyonu etkilemiyor**: rapor model olasılıklarını depolanmış
+kararlardan değil saklanan tahminlerden hesaplıyor, ve gelecek günler için
+tahmin her saat mevcut. Yalnızca işlem tarafı (PnL, gerçekleşen edge) bu
+günlerde boş kalır.
+
+Şimdilik kabul edildi. Sorun olursa cron pencerelerini 09:33Z sonrasına
+yoğunlaştırmak (örn. `"37 10-23 * * *"`) tetikleme sayısını artırmadan
+verimliliği yükseltir.
