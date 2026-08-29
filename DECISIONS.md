@@ -491,3 +491,44 @@ düzeltme bununla aynı büyüklük sırasında değilse, bir yerde hata var dem
 **Ayrıca:** LAX'ı baştan elemeyeceğim. Bias düzeltmesinden sonra kalibrasyonun
 ne olduğuna bakacağım; kötüyse rapora kötü olarak girecek. Şehir eleme kararı
 sonuca bakarak verilirse, bu da bir tür parametre ayarlamasıdır.
+
+---
+
+# EK 3 — Lookahead tarayıcısı gerçek bir ihlal yakaladı (2026-08-29)
+
+İlk otonom koşu (02:47Z) 84 karar üretti. Çözümleme verisi geldiğinde tarayıcı
+şunu bastı:
+
+```
+[decision_after_settlement] decisions#84:
+  settlement observed = 2026-08-28T21:39:00Z  <=  decision_at = 2026-08-29T02:48:12Z
+  (KXHIGHPHIL-26AUG28-T90)
+```
+
+Ajan **dünün** piyasasında karar vermişti; Philadelphia'nın CLI raporu 5 saat
+önce yayınlanmıştı, yani sonuç zaten kamuya açıktı.
+
+Daha sinsi olan ikinci kısım: geçmiş bir hedef gün için Open-Meteo tahmin değil
+**analiz** döndürür. Model o kovalarda neredeyse kusursuz görünürdü — bias
+çalışmasında yakaladığım `past_days` tuzağının aynısı, başka kılıkta.
+
+## Düzeltme
+
+Ajan artık **yalnızca gelecek hedef günlerde** karar veriyor. Bugün de dışarıda:
+öğleden sonra maksimum çoktan gerçekleşmiş olabilir ve "tahmin" fiilen gözleme
+dönüşür. Sabit ~1 günlük lead time'da kalmak, ölçtüğümüz şeyin gerçekten tahmin
+becerisi olmasını garantiliyor.
+
+## Kirlenmiş kayıtlara ne yapıldı
+
+95 karar/fill kaydı **silinmedi**, `data/quarantine/` altına taşındı ve neden
+taşındığı yanına yazıldı. Gözlem kayıtlarına (piyasa, tahmin, çözümleme) hiç
+dokunulmadı — onlar append-only ve dokunulmaz. Karar ve fill kayıtları türetilmiş
+çıktı; gözlemlerden yeniden üretilebilirler, ama yine de kaybetmedik.
+
+## Not
+
+Bu, senin baştan istediğin lookahead denetiminin işe yaradığı ilk somut örnek.
+Ben bu hatayı gözden kaçırmıştım; testi değil, **verinin kendisini tarayan**
+kontrol yakaladı. CHECK kısıtları da göremezdi: her satırın zaman damgası kendi
+içinde tutarlıydı, ihlal ancak kararla çözümlemeyi yan yana koyunca görünüyor.

@@ -61,13 +61,26 @@ def decide(
     today_utc = us_to_dt(now_us()).date().isoformat()
     already = rawstore.collected_decision_keys(today_utc, slot_id, root)
 
-    stats = {"decisions": 0, "trades": 0, "no_trade": 0, "skipped": 0, "no_model": 0}
+    stats = {"decisions": 0, "trades": 0, "no_trade": 0, "skipped": 0,
+             "no_model": 0, "past_or_today": 0}
     exposure = 0.0
 
     for city in cfg.CITIES:
         today_local = datetime.now(ZoneInfo(city.tz)).date()
+        # SADECE GELECEK GÜNLER.
+        #
+        # Bugünü ve geçmişi bilerek dışarıda bırakıyoruz. Sebebi ölçüldü:
+        # 02:47Z koşusu dünün piyasalarında karar verdi ve lookahead tarayıcısı
+        # yakaladı — Philadelphia'nın CLI raporu 5 saat önce yayınlanmıştı,
+        # yani sonuç zaten biliniyordu. Dahası, geçmiş bir gün için Open-Meteo
+        # "tahmin" değil analiz döndürür; model o kovalarda dâhi görünürdü.
+        #
+        # Bugünün piyasaları da güvenli değil: öğleden sonra maksimum çoktan
+        # gerçekleşmiş olabilir ve "tahmin" fiilen gözleme dönüşür. Sabit ~1
+        # günlük lead time'da kalmak, ölçtüğümüz şeyin gerçekten tahmin becerisi
+        # olmasını garantiliyor.
         horizon = {(today_local + timedelta(days=d)).isoformat()
-                   for d in range(horizon_days + 1)}
+                   for d in range(1, horizon_days + 1)}
 
         events = [r["event_ticker"] for r in conn.execute(
             "SELECT DISTINCT event_ticker FROM market_snapshots"
@@ -80,6 +93,7 @@ def decide(
             except Exception:
                 continue
             if target not in horizon:
+                stats["past_or_today"] = stats.get("past_or_today", 0) + 1
                 continue
 
             snaps = list(conn.execute(
@@ -171,7 +185,8 @@ def decide(
     if verbose:
         print(f"karar  : {stats['decisions']} karar "
               f"({stats['trades']} işlem, {stats['no_trade']} işlem yok), "
-              f"{stats['skipped']} atlandı, {stats['no_model']} model yok "
+              f"{stats['skipped']} atlandı, {stats['no_model']} model yok, "
+              f"{stats['past_or_today']} olay bugün/geçmiş (atlandı) "
               f"(slot {slot_id})")
     return stats
 

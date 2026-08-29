@@ -201,6 +201,23 @@ def ingest_fill(conn: sqlite3.Connection, rec: dict) -> bool:
     return cur.rowcount == 1
 
 
+def ingest_settlement(conn: sqlite3.Connection, rec: dict) -> bool:
+    try:
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO settlements
+               (venue, market_ticker, event_ticker, target_date, observed_at_us,
+                observed_at_iso, source, source_url, raw_json, outcome, observed_value)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (rec["venue"], rec["market_ticker"], rec["event_ticker"],
+             rec["target_date"], rec["observed_at_us"], rec["observed_at_iso"],
+             rec["source"], rec["source_url"], db.json_dumps(rec["raw"]),
+             rec["outcome"], rec["observed_value"]))
+    except sqlite3.IntegrityError as exc:
+        raise IngestError(
+            f"çözümleme reddedildi ({rec['market_ticker']}): {exc}") from exc
+    return cur.rowcount == 1
+
+
 def _num(v: object) -> float | None:
     if v is None or v == "":
         return None
@@ -216,7 +233,8 @@ def _num(v: object) -> float | None:
 def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
                *, verbose: bool = True) -> dict[str, int]:
     stats = {"market_new": 0, "market_seen": 0, "forecast_new": 0, "forecast_seen": 0,
-             "decision_new": 0, "decision_seen": 0, "fill_new": 0, "fill_seen": 0}
+             "decision_new": 0, "decision_seen": 0, "fill_new": 0, "fill_seen": 0,
+             "settlement_new": 0, "settlement_seen": 0}
 
     conn.execute("BEGIN")
     try:
@@ -236,6 +254,9 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
         for rec in rawstore.read_all("fill", root):
             stats["fill_seen"] += 1
             stats["fill_new"] += 1 if ingest_fill(conn, rec) else 0
+        for rec in rawstore.read_all("settlement", root):
+            stats["settlement_seen"] += 1
+            stats["settlement_new"] += 1 if ingest_settlement(conn, rec) else 0
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -251,6 +272,9 @@ def ingest_all(conn: sqlite3.Connection, root: Path | None = None,
                   f"{stats['decision_new']} yeni satır")
             print(f"fill   : {stats['fill_seen']} kayıt okundu, "
                   f"{stats['fill_new']} yeni satır")
+        if stats["settlement_seen"]:
+            print(f"çözüm  : {stats['settlement_seen']} kayıt okundu, "
+                  f"{stats['settlement_new']} yeni satır")
     return stats
 
 

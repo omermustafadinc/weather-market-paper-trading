@@ -34,7 +34,7 @@ RAW_ROOT = Path(os.environ.get("WXBOT_RAW_ROOT")
 #: Kayıt biçimi sürümü. Şekil değişirse artar; ingest eski sürümleri de okur.
 RECORD_VERSION = 1
 
-KINDS = ("market", "market_meta", "forecast", "decision", "fill")
+KINDS = ("market", "market_meta", "forecast", "decision", "fill", "settlement")
 
 
 def path_for(kind: str, fetched_at_us: int, root: Path | None = None) -> Path:
@@ -283,3 +283,29 @@ def collected_decision_keys(day: str, slot_id: int, root: Path | None = None) ->
 def collected_fill_keys(day: str, slot_id: int, root: Path | None = None) -> set[str]:
     return {r["market_ticker"] for r in read_day("fill", day, root)
             if r.get("slot_id") == slot_id}
+
+
+def settlement_record(
+    *, run_uid: str, venue: str, market_ticker: str, event_ticker: str,
+    target_date: str, observed_at_us: int, observed_at_iso: str, source: str,
+    source_url: str, observed_value: float, outcome: int, raw: dict,
+) -> dict[str, Any]:
+    """Gerçekleşen sonuç.
+
+    `observed_at_us` gözlemin YAYINLANDIĞI andır — kararlardan sonra olmak
+    zorunda. Lookahead tarayıcısındaki `decision_after_settlement` kontrolü
+    tam olarak buna bakıyor.
+    """
+    return {
+        "v": RECORD_VERSION, "kind": "settlement", "run_uid": run_uid,
+        "venue": venue, "market_ticker": market_ticker,
+        "event_ticker": event_ticker, "target_date": target_date,
+        "observed_at_us": observed_at_us, "observed_at_iso": observed_at_iso,
+        "source": source, "source_url": source_url,
+        "observed_value": observed_value, "outcome": outcome, "raw": raw,
+        "fetched_at_us": observed_at_us,
+    }
+
+
+def collected_settlement_keys(day: str, root: Path | None = None) -> set[str]:
+    return {r["market_ticker"] for r in read_day("settlement", day, root)}

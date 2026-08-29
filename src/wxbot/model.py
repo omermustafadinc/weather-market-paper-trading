@@ -116,6 +116,12 @@ class Bucket:
         )
 
 
+def event_target_date_str(event_ticker: str) -> str:
+    """'KXHIGHNY-26AUG29' -> '2026-08-29'."""
+    from .kalshi import event_target_date
+    return event_target_date(event_ticker).isoformat()
+
+
 def _f(v: object) -> float | None:
     return None if v is None else float(v)  # type: ignore[arg-type]
 

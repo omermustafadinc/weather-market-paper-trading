@@ -272,3 +272,28 @@ def test_uye_cikarma_hedef_gun_yoksa_bos() -> None:
     payload = {"daily": {"time": ["2026-08-28"],
                          "temperature_2m_max_member01": [70.0]}}
     assert M.extract_members(payload, "2026-09-01", "temperature_2m_max") == []
+
+
+# ---------------------------------------------------------------------------
+# Bugün/geçmiş olaylarda karar verilmemeli
+# ---------------------------------------------------------------------------
+
+
+def test_ufuk_bugunu_ve_gecmisi_disliyor() -> None:
+    """Ajan yalnızca GELECEK hedef günlerde karar vermeli.
+
+    Bu test bir ihlalden doğdu: gece koşusu dünün piyasalarında karar verdi ve
+    lookahead tarayıcısı yakaladı — CLI raporu 5 saat önce yayınlanmıştı.
+    Ayrıca geçmiş günler için Open-Meteo tahmin değil analiz döndürür.
+    """
+    from datetime import date, timedelta
+
+    from wxbot import config as cfg
+
+    today = date(2026, 8, 29)
+    horizon = {(today + timedelta(days=d)).isoformat()
+               for d in range(1, cfg.HORIZON_DAYS + 1)}
+
+    assert today.isoformat() not in horizon, "bugün ufka girmemeli"
+    assert (today - timedelta(days=1)).isoformat() not in horizon, "dün ufka girmemeli"
+    assert (today + timedelta(days=1)).isoformat() in horizon, "yarın ufkta olmalı"
