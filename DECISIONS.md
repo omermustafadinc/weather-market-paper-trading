@@ -532,3 +532,55 @@ Bu, senin baştan istediğin lookahead denetiminin işe yaradığı ilk somut ö
 Ben bu hatayı gözden kaçırmıştım; testi değil, **verinin kendisini tarayan**
 kontrol yakaladı. CHECK kısıtları da göremezdi: her satırın zaman damgası kendi
 içinde tutarlıydı, ihlal ancak kararla çözümlemeyi yan yana koyunca görünüyor.
+
+---
+
+# EK 4 — Otonomi kararı ve bilinen eksikler (2026-08-29)
+
+## Tetikleme sıklığı: olduğu gibi bırakıldı
+
+GitHub'ın `schedule` event'i bu repoda 12.75 saatte ~51 pencereden 1'ini
+tetikledi (~%2). Üç seçenek değerlendirildi:
+
+| | cadence | bedeli |
+|---|---|---|
+| **A. böyle bırak** *(seçildi)* | günde ~2 toplama | yok |
+| B. PAT ile kendi kendini zincirle | ~30 dk, güvenilir | repoda kimlik bilgisi |
+| C. uzun koşu (5-6 saat) | tetiklendiğinde yoğun | koşunun %93'ü boşta; GitHub kaynağını sınırda kullanım |
+
+**A seçildi.** Gerekçe: kalibrasyon için asıl gereklilik günde EN AZ BİR toplama.
+Hedef gün D için, D−1 gününde yapılmış herhangi bir toplama ≥24 saatlik lead
+veriyor; `build_cases` "as-of'tan önceki en yeni tahmin"i aldığı için sık
+örnekleme gerekmiyor. Asıl risk sıklık değil, **bütün bir günü kaçırmak** —
+günde 1-2 tetikleme bunu büyük ölçüde karşılıyor.
+
+İşlem tarafı (PnL, gerçekleşen edge) bundan olumsuz etkilenir: daha az işlem,
+daha yavaş sinyal. Sonuç sınırda çıkarsa B yeniden değerlendirilecek.
+
+## Bilinen eksik: bias düzeltmesi UYGULANMIYOR
+
+EK 2'de ölçtüğümüz grid-istasyon bias'ı (LAX'ta ECMWF +9.4°F) modele **henüz
+uygulanmıyor**. Yani şu anda üretilen kararlar, bilerek düzeltilmemiş bir
+modelden geliyor.
+
+Neden bu hâliyle bırakıldı:
+
+* Ölçülen bias `previous-runs` deterministik tahminine ait; ensemble ortalamamın
+  bias'ı birebir aynı olmayabilir. Onu doğrudan gömmek, yanlış büyüklükte bir
+  düzeltme uygulamak olurdu.
+* Doğrusu yürüyen pencereyle (walk-forward) kendi canlı verimizden tahmin etmek;
+  bunun için henüz veri yok.
+
+**Bu bir kayıp değil, ertelenmiş bir iş.** Sebebi şu: raporlayıcı model
+olasılıklarını depolanmış kararlardan değil, **saklanan ham tahminlerden yeniden
+hesaplıyor.** Yani bias düzeltmesi sonradan eklendiğinde, geçmişe dönük olarak
+düzeltilmiş ve düzeltilmemiş kalibrasyon YAN YANA raporlanabilir — veri
+toplanırken hangi modelin kullanıldığından bağımsız.
+
+Etkilenen tek şey işlem kararları: şu anda düzeltilmemiş modelle veriliyorlar
+ve muhtemelen kötü olacaklar. Bu da bir ölçüm — kötü çıkarsa kötü raporlanacak.
+
+## Nereye bakılacak
+
+`REPORT.md` — her koşuda otomatik güncellenip repoya commit'leniyor.
+Şu an "SONUÇ YOK" ve nedenini yazıyor.

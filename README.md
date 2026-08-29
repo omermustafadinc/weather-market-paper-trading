@@ -82,6 +82,25 @@ research/      Faz 0 ham erişilebilirlik kanıtları
 DECISIONS.md   platform/veri kaynağı kararları ve gerekçeleri
 ```
 
+## Nereye bakmalı
+
+**[REPORT.md](REPORT.md)** — her koşuda otomatik güncellenir. Brier skoru,
+kalibrasyon eğrisi, fee öncesi/sonrası PnL ve baseline karşılaştırmaları.
+Değerlendirilecek veri yoksa bunu açıkça yazar ve nedenini gösterir.
+
+Toplayıcı **GitHub Actions'ta** koşuyor, kimsenin bilgisayarında değil.
+
+### Bilinen eksikler
+
+* **Bias düzeltmesi uygulanmıyor.** Grid-istasyon sapması ölçüldü
+  (LAX'ta ECMWF +9.4 °F, bkz. [research/bias_study_2026-08-28.txt](research/bias_study_2026-08-28.txt))
+  ama modele henüz girmedi — doğrusu canlı veriden yürüyen pencereyle tahmin
+  etmek ve o veri henüz yok. Rapor, model olasılıklarını ham tahminlerden
+  yeniden hesapladığı için düzeltme sonradan geçmişe dönük uygulanabilir.
+* **Tetikleme seyrek.** GitHub'ın schedule event'i ~%2 oranında tetikleniyor;
+  günde ~2 toplama bekleniyor. Kalibrasyon için yeterli, işlem sinyali için yavaş.
+* **Kalibre edilmemiş model.** Bant genişliği Silverman kuralından; ölçülmedi.
+
 ## Durum
 
 - [x] **Faz 0** — araştırma, platform ve veri kaynağı kararı (`DECISIONS.md`)
