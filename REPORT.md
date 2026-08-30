@@ -1,15 +1,15 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-08-30T17:52:38.143999Z
+üretim zamanı : 2026-08-30T19:16:18.888922Z
 lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot           3234
-  orderbook seviyesi      178890
-  tahmin snapshot           2772
-  karar                      516
-  simüle fill                118
+  piyasa snapshot           3570
+  orderbook seviyesi      198088
+  tahmin snapshot           3024
+  karar                      600
+  simüle fill                140
   çözümlenmiş kova            96
 
 ## KALİBRASYON: VERİ YOK
@@ -42,8 +42,10 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ## İşlemler (30)
   işlem sayısı                      30
   kazanan                           19  (%63)
-  ort. İDDİA EDİLEN edge       +17.21p
-  ort. GERÇEKLEŞEN edge        +26.92p
+  ort. İDDİA EDİLEN edge       +17.21p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge        +26.92p   ±7.8p  %95 [+11.5p, +42.3p]
+     -> iddia edilen değer bu aralığın İÇİNDE: ikisi tutarlı,
+        aradaki fark bu örneklem büyüklüğünde gürültü.
   toplam fee                     34.15 $
   PnL fee ÖNCESİ              +1540.20 $
   PnL fee SONRASI             +1506.05 $
