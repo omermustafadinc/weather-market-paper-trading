@@ -20,8 +20,11 @@ import argparse
 import json
 from pathlib import Path
 
+from zoneinfo import ZoneInfo
+
+from . import config as cfg
 from . import rawstore
-from .clock import now_us
+from .clock import now_us, us_to_dt
 
 
 def find_contaminated(root: Path | None = None) -> tuple[list[list], list[list], list[str]]:
@@ -38,7 +41,12 @@ def find_contaminated(root: Path | None = None) -> tuple[list[list], list[list],
         key = (rec["venue"], rec["market_ticker"], rec["slot_id"])
         if key in already["decision"]:
             continue
-        if rec["target_date"] <= rec["decision_at_iso"][:10]:
+        city = cfg.CITY_BY_SERIES.get(rec["market_ticker"].split("-")[0])
+        if city is None:
+            continue
+        local_date = (us_to_dt(rec["decision_at_us"])
+                      .astimezone(ZoneInfo(city.tz)).date().isoformat())
+        if rec["target_date"] <= local_date:
             dec_keys.append(list(key))
 
     bad = {tuple(k) for k in dec_keys}

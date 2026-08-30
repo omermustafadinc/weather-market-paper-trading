@@ -90,11 +90,11 @@ class Fixture:
             """INSERT INTO decisions
                (run_id, slot_id, venue, market_ticker, event_ticker, target_date,
                 data_asof_us, data_asof_iso, decision_at_us, decision_at_iso,
-                market_snapshot_id, forecast_basis, action, reason,
+                decision_local_date, market_snapshot_id, forecast_basis, action, reason,
                 model_prob, market_prob, edge, kelly_fraction, target_contracts)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (self.run_id, SLOT, VENUE, TICKER, EVENT, TARGET_DATE,
-             T1, us_to_iso(T1), T2, us_to_iso(T2),
+             T1, us_to_iso(T1), T2, us_to_iso(T2), '2026-08-27',
              self.snap_decision, f"[{self.fc_id}]", "buy_yes",
              "model %52 diyor, ask 44c, edge 8 puan > 4 puan eşiği",
              0.52, 0.44, 0.08, 0.25, 5.0),

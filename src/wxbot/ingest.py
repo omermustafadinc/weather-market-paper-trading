@@ -16,8 +16,11 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from zoneinfo import ZoneInfo
+
+from . import config as cfg
 from . import db, rawstore
-from .clock import us_to_iso
+from .clock import us_to_dt, us_to_iso
 from .kalshi import field, parse_orderbook, to_dcents
 
 
@@ -137,6 +140,14 @@ def ingest_decision(conn: sqlite3.Connection, rec: dict) -> bool:
     run_id = _ensure_run(conn, rec.get("run_uid", "unknown"), rec["slot_id"],
                          cfg.MARKET_SLOT_SECONDS, rec["decision_at_us"])
 
+    # Kararın yerel günü: piyasanın kendi zaman diliminde. Ham kayıt formatını
+    # değiştirmeden burada türetiyoruz, böylece geçmiş kayıtlar da düzeliyor.
+    city = cfg.CITY_BY_SERIES.get(rec["market_ticker"].split("-")[0])
+    if city is None:
+        raise IngestError(f"bilinmeyen seri: {rec['market_ticker']}")
+    local_date = (us_to_dt(rec["decision_at_us"])
+                  .astimezone(ZoneInfo(city.tz)).date().isoformat())
+
     ticker, slot, purpose = rec["market_snapshot_key"].split("|")
     snap = conn.execute(
         "SELECT id FROM market_snapshots WHERE market_ticker=? AND slot_id=? AND purpose=?",
@@ -151,12 +162,14 @@ def ingest_decision(conn: sqlite3.Connection, rec: dict) -> bool:
             """INSERT OR IGNORE INTO decisions
                (run_id, slot_id, venue, market_ticker, event_ticker, target_date,
                 data_asof_us, data_asof_iso, decision_at_us, decision_at_iso,
-                market_snapshot_id, forecast_basis, action, reason, model_prob,
-                market_prob, edge, kelly_fraction, target_contracts, limits_json)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                decision_local_date, market_snapshot_id, forecast_basis, action,
+                reason, model_prob, market_prob, edge, kelly_fraction,
+                target_contracts, limits_json)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (run_id, rec["slot_id"], rec["venue"], rec["market_ticker"],
              rec["event_ticker"], rec["target_date"], rec["data_asof_us"],
              rec["data_asof_iso"], rec["decision_at_us"], rec["decision_at_iso"],
+             local_date,
              int(snap["id"]), db.json_dumps(rec["forecast_basis"]), rec["action"],
              rec["reason"], rec["model_prob"], rec["market_prob"], rec["edge"],
              rec["kelly_fraction"], rec["target_contracts"],

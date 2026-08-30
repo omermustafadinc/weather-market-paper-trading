@@ -327,24 +327,39 @@ def collected_settlement_keys(day: str, root: Path | None = None) -> set[str]:
 
 def invalidation_record(
     *, run_uid: str, target_kind: str, keys: list[list], reason: str,
-    at_us: int,
+    at_us: int, revoke: bool = False,
 ) -> dict[str, Any]:
-    """`keys`: [venue, market_ticker, slot_id] üçlüleri."""
+    """`keys`: [venue, market_ticker, slot_id] üçlüleri.
+
+    `revoke=True` bir ÖNCEKİ iptali geri alır. Gerekli oldu: iptal kuralım
+    yerel hedef günü UTC karar gününe karşı karşılaştırıyordu ve ABD
+    şehirlerinde 00:00-04:00Z arası verilen MEŞRU ertesi-gün kararlarını
+    yanlışlıkla iptal etti. Silmek yerine geri alma kaydı yazıyoruz;
+    tarihçe bozulmadan kalıyor.
+    """
     if target_kind not in ("decision", "fill"):
         raise ValueError(f"yalnızca türetilmiş kayıtlar iptal edilebilir: {target_kind!r}")
     return {
         "v": RECORD_VERSION, "kind": "invalidation", "run_uid": run_uid,
         "target_kind": target_kind, "keys": [list(k) for k in keys],
-        "reason": reason, "fetched_at_us": at_us,
+        "reason": reason, "revoke": bool(revoke), "fetched_at_us": at_us,
     }
 
 
 def invalidated_keys(root: Path | None = None) -> dict[str, set[tuple]]:
-    """{target_kind: {(venue, market_ticker, slot_id), ...}}"""
+    """{target_kind: {(venue, market_ticker, slot_id), ...}}
+
+    Kayıtlar YAZILMA SIRASINA göre işlenir: iptal ekler, geri alma çıkarır.
+    """
     out: dict[str, set[tuple]] = {"decision": set(), "fill": set()}
-    for rec in read_all("invalidation", root):
+    for rec in sorted(read_all("invalidation", root),
+                      key=lambda r: r.get("fetched_at_us", 0)):
         tk = rec.get("target_kind")
-        if tk in out:
-            for k in rec.get("keys", []):
-                out[tk].add((k[0], k[1], int(k[2])))
+        if tk not in out:
+            continue
+        keys = {(k[0], k[1], int(k[2])) for k in rec.get("keys", [])}
+        if rec.get("revoke"):
+            out[tk] -= keys
+        else:
+            out[tk] |= keys
     return out

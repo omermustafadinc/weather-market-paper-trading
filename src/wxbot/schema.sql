@@ -129,6 +129,13 @@ CREATE TABLE IF NOT EXISTS decisions (
     data_asof_iso      TEXT    NOT NULL,
     decision_at_us     INTEGER NOT NULL,
     decision_at_iso    TEXT    NOT NULL,
+    -- Kararın, PİYASANIN KENDİ zaman dilimindeki günü.
+    --
+    -- Neden ayrı sütun: hedef gün (target_date) yereldir, decision_at_iso ise
+    -- UTC. İkisini doğrudan karşılaştırmak, ABD şehirlerinde 00:00-04:00Z
+    -- aralığında yapılan MEŞRU ertesi-gün kararlarını ihlal sanır. Bu hata
+    -- bir kez yapıldı ve boru hattını ~15 saat durdurdu.
+    decision_local_date TEXT   NOT NULL,
 
     market_snapshot_id INTEGER NOT NULL REFERENCES market_snapshots (id),
     forecast_basis     TEXT    NOT NULL,   -- kullanılan forecast_snapshot id'leri, JSON dizi

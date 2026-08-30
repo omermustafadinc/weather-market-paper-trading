@@ -34,7 +34,7 @@ from datetime import datetime, timedelta
 from . import config as cfg
 from . import db, model
 from .clock import iso_to_us, us_to_iso
-from .fills import DOLLAR_DCENTS
+from .fills import DOLLAR_DCENTS, taker_fee_dcents
 
 
 # ---------------------------------------------------------------------------
@@ -254,9 +254,14 @@ def trade_results(conn: sqlite3.Connection) -> list[TradeResult]:
                         r["edge"] or 0.0).compute() for r in rows]
 
 
-def random_baseline(conn: sqlite3.Connection, n_trades: int, *,
+def random_baseline(conn: sqlite3.Connection, sizes: list[float], *,
                     seed: int = 0, trials: int = 200) -> dict | None:
-    """Rastgele işlem: aynı sayıda, aynı piyasalardan, rastgele yön.
+    """Rastgele işlem: aynı sayıda, AYNI BÜYÜKLÜKTE, rastgele piyasa ve yön.
+
+    `sizes` bizim gerçek işlemlerimizin kontrat adetleri. Büyüklüğü eşitlemek
+    şart: ilk sürümde baseline tek kontratla işlem yapıyordu ve bizim ~200
+    kontratlık pozisyonlarımızla karşılaştırılıyordu — 200 katlık farkı beceri
+    gibi gösteriyordu. Böyle bir karşılaştırma hiçbir şey ölçmez.
 
     Tek bir rastgele koşu gürültüdür; dağılımı görmek için çok kez tekrarlanıyor.
     """
@@ -267,14 +272,14 @@ def random_baseline(conn: sqlite3.Connection, n_trades: int, *,
            WHERE m.purpose = 'decision' AND s.outcome IS NOT NULL
              AND m.yes_ask_dcents IS NOT NULL
            GROUP BY m.market_ticker""").fetchall()
-    if not pool or n_trades <= 0:
+    if not pool or not sizes:
         return None
 
     rng = random.Random(seed)
     totals = []
     for _ in range(trials):
         total = 0.0
-        for _ in range(n_trades):
+        for size in sizes:
             r = rng.choice(pool)
             side = rng.choice(("yes", "no"))
             price = r["yes_ask_dcents"] if side == "yes" else (
@@ -282,7 +287,9 @@ def random_baseline(conn: sqlite3.Connection, n_trades: int, *,
             if not price or price <= 0 or price >= DOLLAR_DCENTS:
                 continue
             win = r["outcome"] if side == "yes" else (1 - r["outcome"])
-            total += win * DOLLAR_DCENTS - price
+            # Aynı kontrat adediyle; fee de dahil, bizimkinde de dahil.
+            total += size * (win * DOLLAR_DCENTS - price)
+            total -= taker_fee_dcents(size, price)
         totals.append(total)
     totals.sort()
     return {"mean": sum(totals) / len(totals), "p05": totals[len(totals) // 20],
@@ -323,7 +330,7 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
 
     cases = build_cases(conn, lead_hours=lead_hours)
     if not cases:
-        w("\n## SONUÇ YOK")
+        w("\n## KALİBRASYON: VERİ YOK")
         w(f"  {lead_hours:.0f} saatlik lead time'da değerlendirilebilir "
           "tahmin-sonuç çifti yok.")
         avail = available_leads(conn)
@@ -339,6 +346,7 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
         else:
             w("  Henüz çözümlenmiş hedef gün yok.")
         w("\n  Sayı uydurmuyoruz — biriktikçe rapor dolacak.")
+        w(_trades_section(conn, None, None))
         return "\n".join(out)
 
     model_pairs = [(c.model_prob, c.outcome) for c in cases]
@@ -380,14 +388,31 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
           f"{row['observed']:>14.3f}{d:>+9.3f}")
     w("  (fark pozitif = model az tahmin ediyor, negatif = fazla)")
 
-    # --- işlemler ---
+    w(_trades_section(conn, b_model, b_market))
+
+    w("\n" + "=" * 72)
+    w("Bu rapor lookahead denetiminden geçmiş veriden üretildi.")
+    w("Eşik/model/şehir seçimi sonuca bakarak değiştirilmedi.")
+    return "\n".join(out)
+
+
+def _trades_section(conn: sqlite3.Connection, b_model: float | None,
+                    b_market: float | None) -> str:
+    """İşlem sonuçları. Kalibrasyon verisinden BAĞIMSIZ.
+
+    Erken sürümde rapor kalibrasyon verisi yoksa hiç buraya gelmiyordu;
+    çözümlenmiş fill'ler varken bile 'sonuç yok' diyordu. Ayrıldı.
+    """
+    out: list[str] = []
+    w = out.append
     trades = trade_results(conn)
     w(f"\n## İşlemler ({len(trades)})")
     if not trades:
         w("  Çözümlenmiş, geçerli fill yok.")
         w("  Not: kararlar yalnızca gelecek hedef günlerde veriliyor; sonuçları")
         w("  ertesi sabah NWS CLI raporuyla geliyor.")
-    else:
+        return "\n".join(out)
+    if True:
         n = len(trades)
         claimed = sum(t.claimed_edge for t in trades) / n
         realized = sum((t.payoff_dcents - t.avg_price_dcents * t.contracts)
@@ -408,7 +433,7 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
         # --- baseline'lar ---
         w("\n## Baseline karşılaştırması")
         w(f"  (a) hiç işlem yapmamak        {0.0:>+10.2f} $")
-        rb = random_baseline(conn, n)
+        rb = random_baseline(conn, [t.contracts for t in trades])
         if rb:
             w(f"  (b) rastgele işlem (ort.)     {rb['mean']/DOLLAR_DCENTS:>+10.2f} $"
               f"   %90 aralık [{rb['p05']/DOLLAR_DCENTS:+.2f}, "
@@ -418,15 +443,16 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
               f"(model {b_model:.4f})")
         w(f"\n  bizim (fee sonrası)           {pnl_a/DOLLAR_DCENTS:>+10.2f} $")
 
+        if n < 100:
+            w(f"\n  !! ÖRNEK ÇOK KÜÇÜK (n={n}). Bu sayılardan sonuç çıkarılamaz.")
+            w("     Hava piyasalarında tek bir günün sonucu neredeyse tamamen")
+            w("     şanstır; anlamlı bir yargı için haftalarca veri gerekir.")
+
         if pnl_a <= 0:
             w("\n  -> Fee sonrası kâr yok. İşlem yapmamak daha iyiydi.")
         elif rb and pnl_a <= rb["p95"]:
             w("\n  -> Kâr rastgele işlemin %95 aralığının içinde. Beceriye")
             w("     bağlanamaz; bu kadar örnekle şans ile ayırt edilemez.")
-
-    w("\n" + "=" * 72)
-    w("Bu rapor lookahead denetiminden geçmiş veriden üretildi.")
-    w("Eşik/model/şehir seçimi sonuca bakarak değiştirilmedi.")
     return "\n".join(out)
 
 

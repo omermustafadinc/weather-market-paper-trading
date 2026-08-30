@@ -131,11 +131,11 @@ _CHECKS: tuple[tuple[str, str, str], ...] = (
         "Karar, hedef günü geçmiş veya içinde bulunulan bir olayda verilmiş",
         """
         SELECT id,
-               'hedef ' || target_date || ' <= karar günü '
-                   || substr(decision_at_iso, 1, 10)
+               'hedef ' || target_date || ' <= karar günü (yerel) '
+                   || decision_local_date
                    || ' (' || market_ticker || ')' AS detail
         FROM decisions
-        WHERE target_date <= substr(decision_at_iso, 1, 10)
+        WHERE target_date <= decision_local_date
         """,
     ),
     (

@@ -129,3 +129,50 @@ def test_klimatoloji_kova_sayisinin_tersi() -> None:
 
 def test_klimatoloji_bos_sifir() -> None:
     assert climatology_prob([]) == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Baseline karşılaştırması adil mi
+# ---------------------------------------------------------------------------
+
+
+def test_rastgele_baseline_ayni_buyuklukte_islem_yapar(conn) -> None:
+    """Baseline bizimle AYNI kontrat adetlerini kullanmalı.
+
+    İlk sürümde baseline tek kontratla işlem yapıyordu ve bizim ~200
+    kontratlık pozisyonlarımızla karşılaştırılıyordu: rastgele +0.05 $,
+    bizim +364 $. 200 katlık ölçek farkı beceri gibi görünüyordu.
+    """
+    import sqlite3
+
+    from wxbot.report import random_baseline
+
+    conn.execute(
+        """INSERT INTO runs (run_uid, slot_id, slot_seconds, started_at_us)
+           VALUES ('r',1,1800,1)""")
+    conn.execute(
+        """INSERT INTO market_snapshots
+           (run_id, slot_id, purpose, venue, series_ticker, event_ticker,
+            market_ticker, fetched_at_us, fetched_at_iso, source_url,
+            raw_market_json, raw_book_json, yes_bid_dcents, yes_ask_dcents)
+           VALUES (1,1,'decision','kalshi','KXHIGHNY','E','M',1,'i','u','{}','{}',
+                   400,410)""")
+    conn.execute(
+        """INSERT INTO settlements
+           (venue, market_ticker, event_ticker, target_date, observed_at_us,
+            observed_at_iso, source, source_url, raw_json, outcome, observed_value)
+           VALUES ('kalshi','M','E','2026-08-29',9999999999999999,'i','nws_cli',
+                   'u','{}',1,80.0)""")
+
+    kucuk = random_baseline(conn, [1.0] * 5, trials=50)
+    buyuk = random_baseline(conn, [200.0] * 5, trials=50)
+    assert kucuk and buyuk
+    # 200 kat büyük pozisyonlar, kabaca 200 kat büyük saçılım üretmeli
+    yayilim_k = kucuk["p95"] - kucuk["p05"]
+    yayilim_b = buyuk["p95"] - buyuk["p05"]
+    assert yayilim_b > yayilim_k * 50, "baseline pozisyon büyüklüğünü yok sayıyor"
+
+
+def test_rastgele_baseline_bos_girdide_none(conn) -> None:
+    from wxbot.report import random_baseline
+    assert random_baseline(conn, []) is None
