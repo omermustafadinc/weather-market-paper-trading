@@ -424,8 +424,26 @@ def _trades_section(conn: sqlite3.Connection, b_model: float | None,
 
         w(f"  işlem sayısı              {n:>10}")
         w(f"  kazanan                   {wins:>10}  (%{100*wins/n:.0f})")
-        w(f"  ort. İDDİA EDİLEN edge    {claimed*100:>+9.2f}p")
-        w(f"  ort. GERÇEKLEŞEN edge     {realized*100:>+9.2f}p")
+        w(f"  ort. İDDİA EDİLEN edge    {claimed*100:>+9.2f}p   (beklenen değer)")
+        # Gerçekleşen edge 0/1 sonuçlardan geliyor: tek işlem ya +85p ya -15p.
+        # Standart hatayı göstermeden bu sayıyı iddia edilenin yanına koymak,
+        # gürültüyü sinyal gibi okutur.
+        if n > 1:
+            import statistics as _st
+            per = [(t.payoff_dcents / (t.contracts * DOLLAR_DCENTS))
+                   - t.avg_price_dcents / DOLLAR_DCENTS for t in trades]
+            se = _st.stdev(per) / math.sqrt(n)
+            lo, hi = realized - 1.96 * se, realized + 1.96 * se
+            w(f"  ort. GERÇEKLEŞEN edge     {realized*100:>+9.2f}p   "
+              f"±{se*100:.1f}p  %95 [{lo*100:+.1f}p, {hi*100:+.1f}p]")
+            if lo <= claimed <= hi:
+                w("     -> iddia edilen değer bu aralığın İÇİNDE: ikisi tutarlı,")
+                w("        aradaki fark bu örneklem büyüklüğünde gürültü.")
+            else:
+                w("     -> iddia edilen değer aralığın DIŞINDA: model sistematik")
+                w("        olarak yanlış kalibre veya hesapta sorun var.")
+        else:
+            w(f"  ort. GERÇEKLEŞEN edge     {realized*100:>+9.2f}p")
         w(f"  toplam fee                {fees/DOLLAR_DCENTS:>10.2f} $")
         w(f"  PnL fee ÖNCESİ            {pnl_b/DOLLAR_DCENTS:>+10.2f} $")
         w(f"  PnL fee SONRASI           {pnl_a/DOLLAR_DCENTS:>+10.2f} $")
