@@ -1,16 +1,16 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-08-31T00:26:11.746498Z
+üretim zamanı : 2026-08-31T05:49:48.465893Z
 lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot           4242
-  orderbook seviyesi      234196
-  tahmin snapshot           3528
-  karar                      768
-  simüle fill                182
-  çözümlenmiş kova           120
+  piyasa snapshot           4458
+  orderbook seviyesi      246392
+  tahmin snapshot           3654
+  karar                      792
+  simüle fill                197
+  çözümlenmiş kova           126
 
 ## KALİBRASYON: VERİ YOK
   24 saatlik lead time'da değerlendirilebilir tahmin-sonuç çifti yok.
@@ -33,6 +33,7 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
     AUS   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 34.7 saat
     CHI   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 34.7 saat
     DEN   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 35.7 saat
+    LAX   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 36.7 saat
     MIA   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
     NY    2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
     PHL   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
@@ -43,24 +44,24 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 
   Sayı uydurmuyoruz — biriktikçe rapor dolacak.
 
-## İşlemler (95)
-  işlem sayısı                      95
-  kazanan                           30  (%32)
-  ort. İDDİA EDİLEN edge       +14.03p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         -4.38p   ±4.1p  %95 [-12.5p, +3.7p]
+## İşlemler (96)
+  işlem sayısı                      96
+  kazanan                           31  (%32)
+  ort. İDDİA EDİLEN edge       +14.04p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         -3.97p   ±4.1p  %95 [-12.1p, +4.1p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                    119.11 $
-  PnL fee ÖNCESİ               +127.61 $
-  PnL fee SONRASI                +8.50 $
+  toplam fee                    119.32 $
+  PnL fee ÖNCESİ               +132.18 $
+  PnL fee SONRASI               +12.86 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)        -173.93 $   %90 aralık [-1416.84, +1061.37]  (200 deneme)
+  (b) rastgele işlem (ort.)        -193.34 $   %90 aralık [-1755.26, +1371.76]  (200 deneme)
 
-  bizim (fee sonrası)                +8.50 $
+  bizim (fee sonrası)               +12.86 $
 
-  !! ÖRNEK ÇOK KÜÇÜK (n=95). Bu sayılardan sonuç çıkarılamaz.
+  !! ÖRNEK ÇOK KÜÇÜK (n=96). Bu sayılardan sonuç çıkarılamaz.
      Hava piyasalarında tek bir günün sonucu neredeyse tamamen
      şanstır; anlamlı bir yargı için haftalarca veri gerekir.
 
