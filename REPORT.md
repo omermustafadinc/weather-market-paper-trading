@@ -1,16 +1,16 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-02T09:19:23.993328Z
+üretim zamanı : 2026-09-02T13:29:19.014131Z
 lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot           7590
-  orderbook seviyesi      420733
-  tahmin snapshot           6174
+  piyasa snapshot           7758
+  orderbook seviyesi      430622
+  tahmin snapshot           6426
   karar                     1392
   simüle fill                354
-  çözümlenmiş kova           210
+  çözümlenmiş kova           222
 
 ## KALİBRASYON: VERİ YOK
   24 saatlik lead time'da değerlendirilebilir tahmin-sonuç çifti yok.
@@ -51,6 +51,8 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
     MIA   2026-09-01  en erken tahmin 2026-08-30T05:54Z  -> lead 46.1 saat
     NY    2026-09-01  en erken tahmin 2026-08-30T05:54Z  -> lead 46.1 saat
     PHL   2026-09-01  en erken tahmin 2026-08-30T05:55Z  -> lead 46.1 saat
+    AUS   2026-09-02  en erken tahmin 2026-08-31T05:21Z  -> lead 47.6 saat
+    DEN   2026-09-02  en erken tahmin 2026-08-31T11:41Z  -> lead 42.3 saat
 
   Daha uzun lead istiyorsak veri birikmesini beklemek gerek:
   toplama 2026-08-28 18:18Z'de başladı, o günün hedefleri için
@@ -58,21 +60,22 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 
   Sayı uydurmuyoruz — biriktikçe rapor dolacak.
 
-## İşlemler (266)
-  işlem sayısı                     266
-  kazanan                           88  (%33)
-  ort. İDDİA EDİLEN edge       +12.93p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         -4.88p   ±2.4p  %95 [-9.5p, -0.3p]
+## İşlemler (289)
+  işlem sayısı                     289
+  kazanan                          101  (%35)
+  ort. İDDİA EDİLEN edge       +13.36p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         -2.20p   ±2.4p  %95 [-6.8p, +2.4p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                    296.73 $
-  PnL fee ÖNCESİ               -834.70 $
-  PnL fee SONRASI             -1131.43 $
+  toplam fee                    334.95 $
+  PnL fee ÖNCESİ               +968.40 $
+  PnL fee SONRASI              +633.45 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)        -417.46 $   %90 aralık [-2549.65, +1562.26]  (200 deneme)
+  (b) rastgele işlem (ort.)        -597.14 $   %90 aralık [-3084.37, +1480.85]  (200 deneme)
 
-  bizim (fee sonrası)             -1131.43 $
+  bizim (fee sonrası)              +633.45 $
 
-  -> Fee sonrası kâr yok. İşlem yapmamak daha iyiydi.
+  -> Kâr rastgele işlemin %95 aralığının içinde. Beceriye
+     bağlanamaz; bu kadar örnekle şans ile ayırt edilemez.
