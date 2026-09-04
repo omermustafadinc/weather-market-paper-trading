@@ -1,7 +1,7 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-04T13:56:59.972261Z
-lead time     : 24 saat (hedef günün yerel başlangıcından önce)
+üretim zamanı : 2026-09-04T15:09:51.931890Z
+lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
@@ -12,67 +12,39 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
   simüle fill                559
   çözümlenmiş kova           306
 
-## KALİBRASYON: VERİ YOK
-  24 saatlik lead time'da değerlendirilebilir tahmin-sonuç çifti yok.
+## Brier skoru  (düşük = iyi, 264 kova)
+  model                  0.1241
+  piyasa (mid)           0.1336   n=264
+  klimatoloji (1/k)      0.1389
+  sabit %50              0.2500
 
-  Çözümlenmiş günler için ELDEKİ en uzun lead time:
-    AUS   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -13.3 saat
-    CHI   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -13.3 saat
-    DEN   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -12.3 saat
-    LAX   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -11.3 saat
-    MIA   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
-    NY    2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
-    PHL   2026-08-28  en erken tahmin 2026-08-28T18:19Z  -> lead -14.3 saat
-    AUS   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 10.7 saat
-    CHI   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 10.7 saat
-    DEN   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 11.7 saat
-    LAX   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 12.7 saat
-    MIA   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 9.7 saat
-    NY    2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 9.7 saat
-    PHL   2026-08-29  en erken tahmin 2026-08-28T18:19Z  -> lead 9.7 saat
-    AUS   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 34.7 saat
-    CHI   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 34.7 saat
-    DEN   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 35.7 saat
-    LAX   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 36.7 saat
-    MIA   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
-    NY    2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
-    PHL   2026-08-30  en erken tahmin 2026-08-28T18:19Z  -> lead 33.7 saat
-    AUS   2026-08-31  en erken tahmin 2026-08-29T06:28Z  -> lead 46.5 saat
-    CHI   2026-08-31  en erken tahmin 2026-08-29T06:27Z  -> lead 46.5 saat
-    DEN   2026-08-31  en erken tahmin 2026-08-29T06:28Z  -> lead 47.5 saat
-    LAX   2026-08-31  en erken tahmin 2026-08-29T07:06Z  -> lead 47.9 saat
-    MIA   2026-08-31  en erken tahmin 2026-08-29T06:28Z  -> lead 45.5 saat
-    NY    2026-08-31  en erken tahmin 2026-08-29T06:27Z  -> lead 45.5 saat
-    PHL   2026-08-31  en erken tahmin 2026-08-29T06:28Z  -> lead 45.5 saat
-    AUS   2026-09-01  en erken tahmin 2026-08-30T05:55Z  -> lead 47.1 saat
-    CHI   2026-09-01  en erken tahmin 2026-08-30T05:54Z  -> lead 47.1 saat
-    DEN   2026-09-01  en erken tahmin 2026-08-30T06:20Z  -> lead 47.7 saat
-    LAX   2026-09-01  en erken tahmin 2026-08-30T11:48Z  -> lead 43.2 saat
-    MIA   2026-09-01  en erken tahmin 2026-08-30T05:54Z  -> lead 46.1 saat
-    NY    2026-09-01  en erken tahmin 2026-08-30T05:54Z  -> lead 46.1 saat
-    PHL   2026-09-01  en erken tahmin 2026-08-30T05:55Z  -> lead 46.1 saat
-    AUS   2026-09-02  en erken tahmin 2026-08-31T05:21Z  -> lead 47.6 saat
-    CHI   2026-09-02  en erken tahmin 2026-08-31T05:21Z  -> lead 47.6 saat
-    DEN   2026-09-02  en erken tahmin 2026-08-31T11:41Z  -> lead 42.3 saat
-    LAX   2026-09-02  en erken tahmin 2026-08-31T11:41Z  -> lead 43.3 saat
-    MIA   2026-09-02  en erken tahmin 2026-08-31T05:21Z  -> lead 46.6 saat
-    NY    2026-09-02  en erken tahmin 2026-08-31T05:20Z  -> lead 46.7 saat
-    PHL   2026-09-02  en erken tahmin 2026-08-31T05:21Z  -> lead 46.6 saat
-    AUS   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 46.2 saat
-    CHI   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 46.2 saat
-    DEN   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 47.2 saat
-    LAX   2026-09-03  en erken tahmin 2026-09-01T07:15Z  -> lead 47.7 saat
-    MIA   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
-    NY    2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
-    PHL   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
-    AUS   2026-09-04  en erken tahmin 2026-09-02T08:50Z  -> lead 44.2 saat
-    DEN   2026-09-04  en erken tahmin 2026-09-02T08:50Z  -> lead 45.2 saat
+  fark (piyasa - model)   +0.0095  ±0.0071  %95 [-0.0044, +0.0235]
+  -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
+     Bu veriyle model piyasadan iyi de kötü de denemez.
 
-  Daha uzun lead istiyorsak veri birikmesini beklemek gerek:
-  toplama 2026-08-28 18:18Z'de başladı, o günün hedefleri için
-  yeterince erken tahmin yok.
+  şehir bazında (model / piyasa):
+    AUS   n= 42  0.1555 / 0.2031   fark +0.0476
+    CHI   n= 36  0.1105 / 0.1089   fark -0.0016
+    DEN   n= 42  0.1487 / 0.2097   fark +0.0610
+    LAX   n= 36  0.1138 / 0.0940   fark -0.0198
+    MIA   n= 36  0.1203 / 0.1285   fark +0.0082
+    NY    n= 36  0.1099 / 0.0654   fark -0.0444
+    PHL   n= 36  0.1007 / 0.1012   fark +0.0005
+    (tek bir şehri seçip 'edge bulduk' demek parametre ayarlamaktır)
 
-  Sayı uydurmuyoruz — biriktikçe rapor dolacak.
+## Kalibrasyon eğrisi (model)
+  aralık          n   ort. tahmin   gerçekleşen     fark
+  0.0-0.1        96         0.035         0.031   -0.003
+  0.1-0.2        69         0.152         0.188   +0.037
+  0.2-0.3        56         0.242         0.268   +0.026
+  0.3-0.4        32         0.347         0.250   -0.097
+  0.4-0.5         6         0.439         0.167   -0.273
+  0.5-0.6         4         0.560         0.750   +0.190
+  0.6-0.7         0             —             —        —
+  0.7-0.8         1         0.703         1.000   +0.297
+  0.8-0.9         0             —             —        —
+  0.9-1.0         0             —             —        —
+  (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
 ## İşlemler (472)
   işlem sayısı                     472
@@ -88,7 +60,12 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
   (b) rastgele işlem (ort.)        -679.10 $   %90 aralık [-3566.56, +2406.55]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1336 (model 0.1241)
 
   bizim (fee sonrası)              -864.89 $
 
   -> Fee sonrası kâr yok. İşlem yapmamak daha iyiydi.
+
+========================================================================
+Bu rapor lookahead denetiminden geçmiş veriden üretildi.
+Eşik/model/şehir seçimi sonuca bakarak değiştirilmedi.

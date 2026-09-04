@@ -76,7 +76,7 @@ jobs:
         if: always()
         run: |
           python -m wxbot.ingest --db /tmp/wx.db --rebuild --quiet
-          python -m wxbot.report --db /tmp/wx.db --out REPORT.md
+          python -m wxbot.report --db /tmp/wx.db --lead-hours 8 --out REPORT.md
           cat REPORT.md
 
       - name: Kalan veriyi ve raporu commit'le

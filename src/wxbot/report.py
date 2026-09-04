@@ -340,9 +340,11 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
                 w(f"    {row['city']:<5} {row['target_date']}  "
                   f"en erken tahmin {row['earliest_iso'][:16]}Z  "
                   f"-> lead {row['max_lead_hours']:.1f} saat")
-            w("\n  Daha uzun lead istiyorsak veri birikmesini beklemek gerek:")
-            w("  toplama 2026-08-28 18:18Z'de başladı, o günün hedefleri için")
-            w("  yeterince erken tahmin yok.")
+            w("\n  DİKKAT: bu bir veri eksikliği olmayabilir. Kalshi günlük")
+            w("  sıcaklık olaylarını hedef günden ~1 gün önce (~09:30Z) açıyor,")
+            w("  yani hedef günün yerel başlangıcına ~12-16 saat kala. Daha uzun")
+            w("  lead'de PİYASA HENÜZ YOK; model-piyasa karşılaştırması tanımı")
+            w("  gereği yapılamaz. Ölçülebilir en uzun lead şehre göre ~8-16 saat.")
         else:
             w("  Henüz çözümlenmiş hedef gün yok.")
         w("\n  Sayı uydurmuyoruz — biriktikçe rapor dolacak.")
@@ -365,16 +367,41 @@ def render(conn: sqlite3.Connection, *, lead_hours: float = 24.0,
     w(f"  klimatoloji (1/k)    {_fmt(b_clim)}")
     w(f"  sabit %50            {_fmt(b_half)}")
 
-    if b_model is not None and b_market is not None:
-        diff = b_market - b_model
+    if b_model is not None and b_market is not None and len(market_pairs) > 1:
+        # EŞLEŞTİRİLMİŞ karşılaştırma: aynı kova için iki tahminin hatası.
+        # Ham farkı belirsizlik olmadan bildirmek yanıltıcı -- 264 kovada
+        # 0.01'lik bir fark rahatlıkla gürültü olabilir.
+        paired = [(c.market_prob - c.outcome) ** 2 - (c.model_prob - c.outcome) ** 2
+                  for c in cases if c.market_prob is not None]
+        mean_d = sum(paired) / len(paired)
+        var = sum((x - mean_d) ** 2 for x in paired) / (len(paired) - 1)
+        se = math.sqrt(var / len(paired))
+        lo, hi = mean_d - 1.96 * se, mean_d + 1.96 * se
         w("")
-        if diff > 0:
-            w(f"  -> model piyasadan {diff:.4f} DAHA İYİ")
-        elif diff < 0:
-            w(f"  -> model piyasadan {-diff:.4f} DAHA KÖTÜ")
+        w(f"  fark (piyasa - model)  {mean_d:>+8.4f}  ±{se:.4f}  "
+          f"%95 [{lo:+.4f}, {hi:+.4f}]")
+        if lo > 0:
+            w("  -> model piyasadan ANLAMLI ölçüde iyi")
+        elif hi < 0:
+            w("  -> model piyasadan ANLAMLI ölçüde KÖTÜ")
             w("     Piyasayı yenemeyen bir modelde edge aramanın anlamı yok.")
         else:
-            w("  -> model ile piyasa aynı")
+            w("  -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.")
+            w("     Bu veriyle model piyasadan iyi de kötü de denemez.")
+
+        # Şehir bazında: ortalama gürültüyü gizleyebilir.
+        w("\n  şehir bazında (model / piyasa):")
+        import collections as _c
+        by = _c.defaultdict(list)
+        for c_ in cases:
+            if c_.market_prob is not None:
+                by[c_.city].append(c_)
+        for k in sorted(by):
+            v = by[k]
+            bm = sum((x.model_prob - x.outcome) ** 2 for x in v) / len(v)
+            bp = sum((x.market_prob - x.outcome) ** 2 for x in v) / len(v)
+            w(f"    {k:<5} n={len(v):>3}  {bm:.4f} / {bp:.4f}   fark {bp-bm:+.4f}")
+        w("    (tek bir şehri seçip 'edge bulduk' demek parametre ayarlamaktır)")
 
     # --- kalibrasyon ---
     w("\n## Kalibrasyon eğrisi (model)")
