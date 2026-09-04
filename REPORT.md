@@ -1,16 +1,16 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-04T00:48:35.919468Z
+üretim zamanı : 2026-09-04T05:12:53.703131Z
 lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          10794
-  orderbook seviyesi      592651
-  tahmin snapshot           8190
-  karar                     2070
-  simüle fill                541
-  çözümlenmiş kova           288
+  piyasa snapshot          11034
+  orderbook seviyesi      605890
+  tahmin snapshot           8442
+  karar                     2106
+  simüle fill                559
+  çözümlenmiş kova           294
 
 ## KALİBRASYON: VERİ YOK
   24 saatlik lead time'da değerlendirilebilir tahmin-sonuç çifti yok.
@@ -61,6 +61,7 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
     AUS   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 46.2 saat
     CHI   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 46.2 saat
     DEN   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 47.2 saat
+    LAX   2026-09-03  en erken tahmin 2026-09-01T07:15Z  -> lead 47.7 saat
     MIA   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
     NY    2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
     PHL   2026-09-03  en erken tahmin 2026-09-01T06:48Z  -> lead 45.2 saat
@@ -84,7 +85,7 @@ lead time     : 24 saat (hedef günün yerel başlangıcından önce)
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)        -844.40 $   %90 aralık [-3983.53, +2105.05]  (200 deneme)
+  (b) rastgele işlem (ort.)        -815.44 $   %90 aralık [-3779.63, +2143.55]  (200 deneme)
 
   bizim (fee sonrası)             -1054.01 $
 
