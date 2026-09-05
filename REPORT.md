@@ -1,24 +1,24 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-04T23:54:25.271605Z
+üretim zamanı : 2026-09-05T01:49:50.252128Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          12546
-  orderbook seviyesi      683188
-  tahmin snapshot           9324
-  karar                     2400
-  simüle fill                631
-  çözümlenmiş kova           330
+  piyasa snapshot          12882
+  orderbook seviyesi      699952
+  tahmin snapshot           9450
+  karar                     2484
+  simüle fill                652
+  çözümlenmiş kova           336
 
-## Brier skoru  (düşük = iyi, 288 kova)
-  model                  0.1246
-  piyasa (mid)           0.1301   n=288
+## Brier skoru  (düşük = iyi, 294 kova)
+  model                  0.1253
+  piyasa (mid)           0.1284   n=294
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0055  ±0.0068  %95 [-0.0078, +0.0188]
+  fark (piyasa - model)   +0.0031  ±0.0069  %95 [-0.0103, +0.0166]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
@@ -26,7 +26,7 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
     AUS   n= 42  0.1555 / 0.2031   fark +0.0476
     CHI   n= 42  0.1108 / 0.1068   fark -0.0040
     DEN   n= 42  0.1487 / 0.2097   fark +0.0610
-    LAX   n= 36  0.1138 / 0.0940   fark -0.0198
+    LAX   n= 42  0.1201 / 0.0872   fark -0.0330
     MIA   n= 42  0.1211 / 0.1203   fark -0.0008
     NY    n= 42  0.1132 / 0.0738   fark -0.0394
     PHL   n= 42  0.1076 / 0.0980   fark -0.0096
@@ -34,11 +34,11 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       103         0.035         0.029   -0.006
-  0.1-0.2        76         0.152         0.184   +0.033
-  0.2-0.3        65         0.242         0.277   +0.035
+  0.0-0.1       105         0.035         0.029   -0.006
+  0.1-0.2        78         0.151         0.192   +0.041
+  0.2-0.3        66         0.242         0.273   +0.031
   0.3-0.4        32         0.347         0.250   -0.097
-  0.4-0.5         7         0.438         0.143   -0.295
+  0.4-0.5         8         0.441         0.125   -0.316
   0.5-0.6         4         0.560         0.750   +0.190
   0.6-0.7         0             —             —        —
   0.7-0.8         1         0.703         1.000   +0.297
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (551)
-  işlem sayısı                     551
+## İşlemler (559)
+  işlem sayısı                     559
   kazanan                          200  (%36)
-  ort. İDDİA EDİLEN edge       +13.46p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         -0.97p   ±1.6p  %95 [-4.1p, +2.2p]
+  ort. İDDİA EDİLEN edge       +13.55p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         -1.25p   ±1.6p  %95 [-4.4p, +1.9p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                    587.09 $
-  PnL fee ÖNCESİ              -1172.29 $
-  PnL fee SONRASI             -1759.38 $
+  toplam fee                    595.86 $
+  PnL fee ÖNCESİ              -1328.19 $
+  PnL fee SONRASI             -1924.05 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -1000.95 $   %90 aralık [-3969.98, +2458.55]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1301 (model 0.1246)
+  (b) rastgele işlem (ort.)        -884.32 $   %90 aralık [-3585.48, +1907.03]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1284 (model 0.1253)
 
-  bizim (fee sonrası)             -1759.38 $
+  bizim (fee sonrası)             -1924.05 $
 
   -> Fee sonrası kâr yok. İşlem yapmamak daha iyiydi.
 
