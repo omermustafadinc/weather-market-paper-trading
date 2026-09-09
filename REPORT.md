@@ -1,15 +1,15 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-09T15:52:06.916435Z
+üretim zamanı : 2026-09-09T19:14:13.818449Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          21738
-  orderbook seviyesi     1167738
-  tahmin snapshot          15624
-  karar                     4266
-  simüle fill               1106
+  piyasa snapshot          22074
+  orderbook seviyesi     1185023
+  tahmin snapshot          15876
+  karar                     4350
+  simüle fill               1128
   çözümlenmiş kova           516
 
 ## Brier skoru  (düşük = iyi, 474 kova)
