@@ -1,24 +1,24 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-18T19:04:50.890043Z
+üretim zamanı : 2026-09-18T21:43:04.477626Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          39258
-  orderbook seviyesi     2098889
-  tahmin snapshot          27090
-  karar                     7986
-  simüle fill               2085
-  çözümlenmiş kova           894
+  piyasa snapshot          39594
+  orderbook seviyesi     2117805
+  tahmin snapshot          27216
+  karar                     8070
+  simüle fill               2105
+  çözümlenmiş kova           906
 
-## Brier skoru  (düşük = iyi, 852 kova)
-  model                  0.1311
-  piyasa (mid)           0.1358   n=852
+## Brier skoru  (düşük = iyi, 864 kova)
+  model                  0.1312
+  piyasa (mid)           0.1349   n=864
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0047  ±0.0042  %95 [-0.0035, +0.0128]
+  fark (piyasa - model)   +0.0037  ±0.0041  %95 [-0.0044, +0.0118]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
@@ -27,17 +27,17 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
     CHI   n=120  0.1339 / 0.1156   fark -0.0183
     DEN   n=126  0.1506 / 0.2100   fark +0.0593
     LAX   n=120  0.1133 / 0.0969   fark -0.0164
-    MIA   n=120  0.1313 / 0.1181   fark -0.0132
-    NY    n=120  0.1075 / 0.0856   fark -0.0219
+    MIA   n=126  0.1323 / 0.1155   fark -0.0167
+    NY    n=126  0.1081 / 0.0849   fark -0.0232
     PHL   n=120  0.1300 / 0.1055   fark -0.0245
     (tek bir şehri seçip 'edge bulduk' demek parametre ayarlamaktır)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       310         0.034         0.055   +0.020
-  0.1-0.2       219         0.151         0.192   +0.041
-  0.2-0.3       188         0.245         0.261   +0.015
-  0.3-0.4        93         0.343         0.215   -0.128
+  0.0-0.1       314         0.035         0.054   +0.019
+  0.1-0.2       223         0.151         0.193   +0.042
+  0.2-0.3       191         0.245         0.262   +0.016
+  0.3-0.4        94         0.344         0.213   -0.131
   0.4-0.5        30         0.432         0.233   -0.198
   0.5-0.6         8         0.546         0.375   -0.171
   0.6-0.7         2         0.674         1.000   +0.326
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (1948)
-  işlem sayısı                    1948
-  kazanan                          773  (%40)
-  ort. İDDİA EDİLEN edge       +15.21p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +1.72p   ±0.9p  %95 [-0.1p, +3.5p]
+## İşlemler (2006)
+  işlem sayısı                    2006
+  kazanan                          784  (%39)
+  ort. İDDİA EDİLEN edge       +15.25p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         +1.13p   ±0.9p  %95 [-0.7p, +2.9p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   1976.22 $
-  PnL fee ÖNCESİ             +11874.52 $
-  PnL fee SONRASI             +9898.30 $
+  toplam fee                   2032.10 $
+  PnL fee ÖNCESİ             +10925.13 $
+  PnL fee SONRASI             +8893.03 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -4589.43 $   %90 aralık [-10066.50, +779.48]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1358 (model 0.1311)
+  (b) rastgele işlem (ort.)       -4567.72 $   %90 aralık [-9628.78, +574.96]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1349 (model 0.1312)
 
-  bizim (fee sonrası)             +9898.30 $
+  bizim (fee sonrası)             +8893.03 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
