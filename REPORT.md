@@ -1,30 +1,30 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-20T21:38:27.120216Z
+üretim zamanı : 2026-09-20T23:44:11.642078Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          43668
-  orderbook seviyesi     2338580
-  tahmin snapshot          29736
-  karar                     8934
-  simüle fill               2330
-  çözümlenmiş kova           996
+  piyasa snapshot          44004
+  orderbook seviyesi     2354551
+  tahmin snapshot          29862
+  karar                     9018
+  simüle fill               2352
+  çözümlenmiş kova          1002
 
-## Brier skoru  (düşük = iyi, 954 kova)
-  model                  0.1307
-  piyasa (mid)           0.1354   n=954
+## Brier skoru  (düşük = iyi, 960 kova)
+  model                  0.1304
+  piyasa (mid)           0.1351   n=960
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0047  ±0.0040  %95 [-0.0031, +0.0125]
+  fark (piyasa - model)   +0.0047  ±0.0040  %95 [-0.0030, +0.0125]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
   şehir bazında (model / piyasa):
     AUS   n=138  0.1449 / 0.2121   fark +0.0672
-    CHI   n=132  0.1295 / 0.1171   fark -0.0124
+    CHI   n=138  0.1273 / 0.1158   fark -0.0114
     DEN   n=138  0.1500 / 0.2095   fark +0.0594
     LAX   n=132  0.1143 / 0.0961   fark -0.0181
     MIA   n=138  0.1346 / 0.1166   fark -0.0180
@@ -34,11 +34,11 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       342         0.035         0.053   +0.017
-  0.1-0.2       255         0.152         0.188   +0.037
-  0.2-0.3       210         0.246         0.257   +0.011
+  0.0-0.1       344         0.035         0.052   +0.017
+  0.1-0.2       257         0.151         0.187   +0.035
+  0.2-0.3       211         0.246         0.256   +0.010
   0.3-0.4       102         0.344         0.235   -0.109
-  0.4-0.5        33         0.432         0.242   -0.190
+  0.4-0.5        34         0.431         0.265   -0.167
   0.5-0.6         8         0.546         0.375   -0.171
   0.6-0.7         2         0.674         1.000   +0.326
   0.7-0.8         1         0.703         1.000   +0.297
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (2247)
-  işlem sayısı                    2247
-  kazanan                          896  (%40)
-  ort. İDDİA EDİLEN edge       +15.26p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +1.75p   ±0.9p  %95 [+0.1p, +3.4p]
+## İşlemler (2264)
+  işlem sayısı                    2264
+  kazanan                          907  (%40)
+  ort. İDDİA EDİLEN edge       +15.20p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         +1.85p   ±0.9p  %95 [+0.2p, +3.5p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   2270.02 $
-  PnL fee ÖNCESİ             +15054.70 $
-  PnL fee SONRASI            +12784.68 $
+  toplam fee                   2281.29 $
+  PnL fee ÖNCESİ             +15123.75 $
+  PnL fee SONRASI            +12842.46 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -5597.01 $   %90 aralık [-11653.10, +391.32]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1354 (model 0.1307)
+  (b) rastgele işlem (ort.)       -6328.31 $   %90 aralık [-12560.98, +45.82]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1351 (model 0.1304)
 
-  bizim (fee sonrası)            +12784.68 $
+  bizim (fee sonrası)            +12842.46 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
