@@ -1,30 +1,30 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-19T22:02:06.199115Z
+üretim zamanı : 2026-09-19T23:59:51.392454Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          41640
-  orderbook seviyesi     2231660
-  tahmin snapshot          28476
-  karar                     8508
-  simüle fill               2223
-  çözümlenmiş kova           954
+  piyasa snapshot          41976
+  orderbook seviyesi     2248236
+  tahmin snapshot          28602
+  karar                     8592
+  simüle fill               2244
+  çözümlenmiş kova           960
 
-## Brier skoru  (düşük = iyi, 912 kova)
-  model                  0.1311
-  piyasa (mid)           0.1354   n=912
+## Brier skoru  (düşük = iyi, 918 kova)
+  model                  0.1309
+  piyasa (mid)           0.1355   n=918
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0042  ±0.0041  %95 [-0.0037, +0.0122]
+  fark (piyasa - model)   +0.0046  ±0.0040  %95 [-0.0033, +0.0126]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
   şehir bazında (model / piyasa):
     AUS   n=132  0.1466 / 0.2119   fark +0.0653
-    CHI   n=126  0.1314 / 0.1153   fark -0.0161
+    CHI   n=132  0.1295 / 0.1171   fark -0.0124
     DEN   n=132  0.1502 / 0.2096   fark +0.0594
     LAX   n=126  0.1138 / 0.0948   fark -0.0190
     MIA   n=132  0.1333 / 0.1168   fark -0.0165
@@ -34,10 +34,10 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       331         0.035         0.054   +0.019
-  0.1-0.2       236         0.152         0.191   +0.039
-  0.2-0.3       202         0.245         0.262   +0.017
-  0.3-0.4       100         0.344         0.220   -0.124
+  0.0-0.1       333         0.035         0.054   +0.019
+  0.1-0.2       238         0.151         0.189   +0.038
+  0.2-0.3       203         0.245         0.261   +0.016
+  0.3-0.4       101         0.344         0.228   -0.116
   0.4-0.5        31         0.432         0.226   -0.206
   0.5-0.6         8         0.546         0.375   -0.171
   0.6-0.7         2         0.674         1.000   +0.326
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (2102)
-  işlem sayısı                    2102
-  kazanan                          825  (%39)
+## İşlemler (2151)
+  işlem sayısı                    2151
+  kazanan                          865  (%40)
   ort. İDDİA EDİLEN edge       +15.14p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +1.15p   ±0.9p  %95 [-0.6p, +2.9p]
+  ort. GERÇEKLEŞEN edge         +1.81p   ±0.9p  %95 [+0.1p, +3.5p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   2124.14 $
-  PnL fee ÖNCESİ             +10760.62 $
-  PnL fee SONRASI             +8636.48 $
+  toplam fee                   2164.58 $
+  PnL fee ÖNCESİ             +12466.37 $
+  PnL fee SONRASI            +10301.79 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -5042.68 $   %90 aralık [-10773.59, +679.82]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1354 (model 0.1311)
+  (b) rastgele işlem (ort.)       -5056.59 $   %90 aralık [-10879.52, +135.67]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1355 (model 0.1309)
 
-  bizim (fee sonrası)             +8636.48 $
+  bizim (fee sonrası)            +10301.79 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
