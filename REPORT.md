@@ -1,44 +1,44 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-26T19:03:06.179767Z
+üretim zamanı : 2026-09-26T22:00:09.870723Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          53544
-  orderbook seviyesi     2865733
-  tahmin snapshot          35532
-  karar                    10974
-  simüle fill               2882
-  çözümlenmiş kova          1230
+  piyasa snapshot          53880
+  orderbook seviyesi     2881869
+  tahmin snapshot          35658
+  karar                    11058
+  simüle fill               2902
+  çözümlenmiş kova          1254
 
-## Brier skoru  (düşük = iyi, 1188 kova)
+## Brier skoru  (düşük = iyi, 1212 kova)
   model                  0.1311
-  piyasa (mid)           0.1351   n=1188
+  piyasa (mid)           0.1346   n=1212
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0040  ±0.0038  %95 [-0.0034, +0.0114]
+  fark (piyasa - model)   +0.0035  ±0.0038  %95 [-0.0039, +0.0108]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
   şehir bazında (model / piyasa):
     AUS   n=174  0.1360 / 0.2100   fark +0.0741
-    CHI   n=168  0.1229 / 0.1152   fark -0.0077
+    CHI   n=174  0.1237 / 0.1155   fark -0.0082
     DEN   n=174  0.1495 / 0.2065   fark +0.0570
     LAX   n=168  0.1239 / 0.0945   fark -0.0295
-    MIA   n=168  0.1375 / 0.1152   fark -0.0223
-    NY    n=168  0.1099 / 0.0898   fark -0.0201
-    PHL   n=168  0.1372 / 0.1092   fark -0.0280
+    MIA   n=174  0.1365 / 0.1166   fark -0.0199
+    NY    n=174  0.1090 / 0.0880   fark -0.0211
+    PHL   n=174  0.1387 / 0.1094   fark -0.0293
     (tek bir şehri seçip 'edge bulduk' demek parametre ayarlamaktır)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       430         0.035         0.053   +0.019
-  0.1-0.2       314         0.151         0.191   +0.040
-  0.2-0.3       256         0.246         0.254   +0.007
-  0.3-0.4       128         0.345         0.219   -0.126
-  0.4-0.5        46         0.435         0.304   -0.130
+  0.0-0.1       442         0.035         0.054   +0.019
+  0.1-0.2       316         0.151         0.193   +0.042
+  0.2-0.3       262         0.247         0.248   +0.001
+  0.3-0.4       131         0.345         0.229   -0.116
+  0.4-0.5        47         0.435         0.298   -0.137
   0.5-0.6        10         0.549         0.400   -0.149
   0.6-0.7         2         0.674         1.000   +0.326
   0.7-0.8         1         0.703         1.000   +0.297
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (2744)
-  işlem sayısı                    2744
-  kazanan                         1131  (%41)
-  ort. İDDİA EDİLEN edge       +15.38p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +2.93p   ±0.8p  %95 [+1.4p, +4.5p]
+## İşlemler (2829)
+  işlem sayısı                    2829
+  kazanan                         1167  (%41)
+  ort. İDDİA EDİLEN edge       +15.56p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         +3.02p   ±0.8p  %95 [+1.5p, +4.5p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   2751.72 $
-  PnL fee ÖNCESİ             +24952.16 $
-  PnL fee SONRASI            +22200.44 $
+  toplam fee                   2841.28 $
+  PnL fee ÖNCESİ             +24471.64 $
+  PnL fee SONRASI            +21630.36 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -7324.82 $   %90 aralık [-14282.41, -244.52]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1351 (model 0.1311)
+  (b) rastgele işlem (ort.)       -7648.34 $   %90 aralık [-13732.92, -1016.79]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1346 (model 0.1311)
 
-  bizim (fee sonrası)            +22200.44 $
+  bizim (fee sonrası)            +21630.36 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
