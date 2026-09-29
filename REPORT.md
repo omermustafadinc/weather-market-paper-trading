@@ -1,24 +1,24 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-09-28T23:02:53.890694Z
+üretim zamanı : 2026-09-29T02:46:23.549494Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          56904
-  orderbook seviyesi     3038152
-  tahmin snapshot          37926
-  karar                    11730
-  simüle fill               3067
-  çözümlenmiş kova          1332
+  piyasa snapshot          57240
+  orderbook seviyesi     3055922
+  tahmin snapshot          38052
+  karar                    11814
+  simüle fill               3087
+  çözümlenmiş kova          1344
 
-## Brier skoru  (düşük = iyi, 1290 kova)
-  model                  0.1319
-  piyasa (mid)           0.1340   n=1290
+## Brier skoru  (düşük = iyi, 1302 kova)
+  model                  0.1316
+  piyasa (mid)           0.1334   n=1302
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   +0.0022  ±0.0037  %95 [-0.0052, +0.0095]
+  fark (piyasa - model)   +0.0019  ±0.0037  %95 [-0.0054, +0.0091]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
@@ -26,19 +26,19 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
     AUS   n=186  0.1364 / 0.2107   fark +0.0743
     CHI   n=186  0.1269 / 0.1123   fark -0.0146
     DEN   n=186  0.1458 / 0.2037   fark +0.0578
-    LAX   n=180  0.1244 / 0.0965   fark -0.0279
+    LAX   n=186  0.1241 / 0.0971   fark -0.0270
     MIA   n=186  0.1397 / 0.1137   fark -0.0261
-    NY    n=180  0.1077 / 0.0862   fark -0.0215
+    NY    n=186  0.1069 / 0.0842   fark -0.0228
     PHL   n=186  0.1412 / 0.1125   fark -0.0287
     (tek bir şehri seçip 'edge bulduk' demek parametre ayarlamaktır)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       477         0.034         0.057   +0.022
-  0.1-0.2       329         0.152         0.198   +0.046
-  0.2-0.3       276         0.247         0.243   -0.004
+  0.0-0.1       482         0.034         0.056   +0.022
+  0.1-0.2       332         0.152         0.196   +0.044
+  0.2-0.3       278         0.247         0.245   -0.002
   0.3-0.4       140         0.346         0.236   -0.111
-  0.4-0.5        51         0.435         0.294   -0.141
+  0.4-0.5        53         0.436         0.302   -0.134
   0.5-0.6        13         0.545         0.308   -0.237
   0.6-0.7         2         0.674         1.000   +0.326
   0.7-0.8         1         0.703         1.000   +0.297
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (3009)
-  işlem sayısı                    3009
+## İşlemler (3026)
+  işlem sayısı                    3026
   kazanan                         1213  (%40)
-  ort. İDDİA EDİLEN edge       +16.02p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +2.13p   ±0.7p  %95 [+0.7p, +3.6p]
+  ort. İDDİA EDİLEN edge       +16.06p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         +2.00p   ±0.7p  %95 [+0.5p, +3.5p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   3025.33 $
-  PnL fee ÖNCESİ             +24240.14 $
-  PnL fee SONRASI            +21214.81 $
+  toplam fee                   3044.84 $
+  PnL fee ÖNCESİ             +23885.30 $
+  PnL fee SONRASI            +20840.46 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -7959.17 $   %90 aralık [-14503.40, -1885.88]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1340 (model 0.1319)
+  (b) rastgele işlem (ort.)       -8083.70 $   %90 aralık [-14299.31, -1085.04]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1334 (model 0.1316)
 
-  bizim (fee sonrası)            +21214.81 $
+  bizim (fee sonrası)            +20840.46 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
