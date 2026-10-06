@@ -1,16 +1,16 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-10-06T08:37:13.853001Z
+üretim zamanı : 2026-10-06T15:36:38.864796Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          66384
-  orderbook seviyesi     3550073
-  tahmin snapshot          44478
-  karar                    13656
-  simüle fill               3545
-  çözümlenmiş kova          1638
+  piyasa snapshot          66720
+  orderbook seviyesi     3568603
+  tahmin snapshot          44604
+  karar                    13740
+  simüle fill               3565
+  çözümlenmiş kova          1644
 
 ## Brier skoru  (düşük = iyi, 1596 kova)
   model                  0.1310
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (3525)
-  işlem sayısı                    3525
-  kazanan                         1412  (%40)
-  ort. İDDİA EDİLEN edge       +16.22p   (beklenen değer)
-  ort. GERÇEKLEŞEN edge         +1.47p   ±0.7p  %95 [+0.1p, +2.8p]
+## İşlemler (3529)
+  işlem sayısı                    3529
+  kazanan                         1414  (%40)
+  ort. İDDİA EDİLEN edge       +16.23p   (beklenen değer)
+  ort. GERÇEKLEŞEN edge         +1.48p   ±0.7p  %95 [+0.1p, +2.8p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   3514.69 $
-  PnL fee ÖNCESİ             +25948.22 $
-  PnL fee SONRASI            +22433.53 $
+  toplam fee                   3518.95 $
+  PnL fee ÖNCESİ             +25919.08 $
+  PnL fee SONRASI            +22400.13 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -9730.24 $   %90 aralık [-17189.43, -1547.19]  (200 deneme)
+  (b) rastgele işlem (ort.)       -9600.77 $   %90 aralık [-16545.01, -3223.97]  (200 deneme)
   (c) piyasayı doğru kabul et   Brier 0.1328 (model 0.1310)
 
-  bizim (fee sonrası)            +22433.53 $
+  bizim (fee sonrası)            +22400.13 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
