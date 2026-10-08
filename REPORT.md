@@ -1,13 +1,13 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-10-08T03:19:57.102182Z
+üretim zamanı : 2026-10-08T10:03:31.175285Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          68772
-  orderbook seviyesi     3676898
-  tahmin snapshot          45990
+  piyasa snapshot          68856
+  orderbook seviyesi     3682075
+  tahmin snapshot          46116
   karar                    14178
   simüle fill               3677
   çözümlenmiş kova          1722
