@@ -1,31 +1,31 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-10-11T09:32:50.916000Z
+üretim zamanı : 2026-10-11T16:07:58.806311Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot          72840
-  orderbook seviyesi     3888675
-  tahmin snapshot          48510
-  karar                    15036
-  simüle fill               3893
-  çözümlenmiş kova          1848
+  piyasa snapshot          73176
+  orderbook seviyesi     3907316
+  tahmin snapshot          48762
+  karar                    15120
+  simüle fill               3913
+  çözümlenmiş kova          1860
 
-## Brier skoru  (düşük = iyi, 1764 kova)
+## Brier skoru  (düşük = iyi, 1776 kova)
   model                  0.1334
-  piyasa (mid)           0.1324   n=1764
+  piyasa (mid)           0.1330   n=1776
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   -0.0010  ±0.0033  %95 [-0.0074, +0.0055]
+  fark (piyasa - model)   -0.0003  ±0.0033  %95 [-0.0068, +0.0061]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
   şehir bazında (model / piyasa):
-    AUS   n=252  0.1319 / 0.2048   fark +0.0730
+    AUS   n=258  0.1316 / 0.2057   fark +0.0740
     CHI   n=252  0.1381 / 0.1107   fark -0.0274
-    DEN   n=252  0.1509 / 0.2021   fark +0.0512
+    DEN   n=258  0.1504 / 0.2023   fark +0.0519
     LAX   n=252  0.1272 / 0.0958   fark -0.0314
     MIA   n=252  0.1350 / 0.1080   fark -0.0270
     NY    n=252  0.1089 / 0.0917   fark -0.0173
@@ -34,10 +34,10 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1       665         0.033         0.065   +0.032
-  0.1-0.2       442         0.151         0.192   +0.042
-  0.2-0.3       359         0.247         0.242   -0.004
-  0.3-0.4       194         0.346         0.232   -0.114
+  0.0-0.1       669         0.033         0.064   +0.031
+  0.1-0.2       444         0.151         0.191   +0.041
+  0.2-0.3       364         0.246         0.245   -0.002
+  0.3-0.4       195         0.346         0.231   -0.115
   0.4-0.5        76         0.437         0.289   -0.148
   0.5-0.6        22         0.551         0.318   -0.233
   0.6-0.7         3         0.651         0.667   +0.016
@@ -46,23 +46,23 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
   0.9-1.0         0             —             —        —
   (fark pozitif = model az tahmin ediyor, negatif = fazla)
 
-## İşlemler (3809)
-  işlem sayısı                    3809
-  kazanan                         1517  (%40)
-  ort. İDDİA EDİLEN edge       +16.42p   (beklenen değer)
+## İşlemler (3816)
+  işlem sayısı                    3816
+  kazanan                         1518  (%40)
+  ort. İDDİA EDİLEN edge       +16.46p   (beklenen değer)
   ort. GERÇEKLEŞEN edge         +1.15p   ±0.7p  %95 [-0.2p, +2.4p]
      -> iddia edilen değer aralığın DIŞINDA: model sistematik
         olarak yanlış kalibre veya hesapta sorun var.
-  toplam fee                   3806.53 $
-  PnL fee ÖNCESİ             +24574.07 $
-  PnL fee SONRASI            +20767.54 $
+  toplam fee                   3814.20 $
+  PnL fee ÖNCESİ             +24493.35 $
+  PnL fee SONRASI            +20679.15 $
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)       -9411.19 $   %90 aralık [-16305.63, -2930.33]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1324 (model 0.1334)
+  (b) rastgele işlem (ort.)       -9428.14 $   %90 aralık [-16350.77, -1632.01]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1330 (model 0.1334)
 
-  bizim (fee sonrası)            +20767.54 $
+  bizim (fee sonrası)            +20679.15 $
 
 ========================================================================
 Bu rapor lookahead denetiminden geçmiş veriden üretildi.
