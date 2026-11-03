@@ -1,24 +1,24 @@
 ========================================================================
 HAVA DURUMU KÂĞIT-İŞLEM RAPORU
-üretim zamanı : 2026-11-03T02:30:30.319889Z
+üretim zamanı : 2026-11-03T10:02:40.426796Z
 lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 ========================================================================
 
 ## Veri
-  piyasa snapshot         107910
-  orderbook seviyesi     5758116
-  tahmin snapshot          71883
+  piyasa snapshot         108078
+  orderbook seviyesi     5767490
+  tahmin snapshot          72009
   karar                    22320
   simüle fill               5768
-  çözümlenmiş kova          2808
+  çözümlenmiş kova          2814
 
-## Brier skoru  (düşük = iyi, 2724 kova)
+## Brier skoru  (düşük = iyi, 2730 kova)
   model                  0.1295
-  piyasa (mid)           0.1252   n=2724
+  piyasa (mid)           0.1250   n=2730
   klimatoloji (1/k)      0.1389
   sabit %50              0.2500
 
-  fark (piyasa - model)   -0.0043  ±0.0029  %95 [-0.0101, +0.0014]
+  fark (piyasa - model)   -0.0045  ±0.0029  %95 [-0.0103, +0.0012]
   -> FARK ANLAMSIZ: güven aralığı sıfırı içeriyor.
      Bu veriyle model piyasadan iyi de kötü de denemez.
 
@@ -26,7 +26,7 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
     AUS   n=390  0.1209 / 0.1969   fark +0.0760
     CHI   n=390  0.1381 / 0.1045   fark -0.0335
     DEN   n=390  0.1395 / 0.1900   fark +0.0505
-    LAX   n=384  0.1197 / 0.0865   fark -0.0332
+    LAX   n=390  0.1199 / 0.0857   fark -0.0342
     MIA   n=390  0.1361 / 0.1027   fark -0.0334
     NY    n=390  0.1055 / 0.0903   fark -0.0152
     PHL   n=390  0.1466 / 0.1047   fark -0.0419
@@ -34,11 +34,11 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Kalibrasyon eğrisi (model)
   aralık          n   ort. tahmin   gerçekleşen     fark
-  0.0-0.1      1077         0.032         0.053   +0.021
-  0.1-0.2       642         0.150         0.184   +0.034
-  0.2-0.3       504         0.247         0.264   +0.017
+  0.0-0.1      1080         0.032         0.053   +0.021
+  0.1-0.2       643         0.150         0.184   +0.033
+  0.2-0.3       505         0.247         0.265   +0.018
   0.3-0.4       324         0.345         0.247   -0.098
-  0.4-0.5       121         0.439         0.339   -0.100
+  0.4-0.5       122         0.439         0.336   -0.103
   0.5-0.6        39         0.545         0.359   -0.186
   0.6-0.7        10         0.635         0.500   -0.135
   0.7-0.8         1         0.703         1.000   +0.297
@@ -59,8 +59,8 @@ lead time     : 8 saat (hedef günün yerel başlangıcından önce)
 
 ## Baseline karşılaştırması
   (a) hiç işlem yapmamak             +0.00 $
-  (b) rastgele işlem (ort.)      -15501.47 $   %90 aralık [-25232.45, -7742.56]  (200 deneme)
-  (c) piyasayı doğru kabul et   Brier 0.1252 (model 0.1295)
+  (b) rastgele işlem (ort.)      -14393.82 $   %90 aralık [-22511.35, -3654.67]  (200 deneme)
+  (c) piyasayı doğru kabul et   Brier 0.1250 (model 0.1295)
 
   bizim (fee sonrası)            +42157.69 $
 
